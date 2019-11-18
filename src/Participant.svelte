@@ -7,9 +7,14 @@
 
     export let name = 'unnamed participant';
     export let recipient = null;
+
     const sendOffer = offerTo(recipient);
     const sendAnswer = answerTo(recipient);
     const sendCandidate = candidateTo(recipient);
+    const justTheSdp = json => json && JSON.parse(json).sdp
+
+    const packOffer = sdp => ({type: 'offer', sdp});
+    const packAnswer = sdp => ({type: 'answer', sdp});
 
     export let isCaller = false;
     export let isReceiver = false;
@@ -24,9 +29,9 @@
     let connectionState = '';
     let iceConnectionState = '';
 
-    let localOffer = '';
-    $: receivedOffer = $offer[name];
-    $: receivedAnswer = $answer[name];
+    let localOfferSdp = '';
+    $: receivedOffer = justTheSdp($offer[name]);
+    $: receivedAnswer = justTheSdp($answer[name]);
 
     let myCandidates = [];
 
@@ -102,19 +107,19 @@
             offerToReceiveVideo: true,
             offerToReceiveAudio: false,
         });
-        localOffer = JSON.stringify(offer, null, 4);
+        localOfferSdp = offer.sdp
     }
 
     async function createAnswer() {
         logEvent('a', 'create answer');
         const answer = await peerConnection.createAnswer();
-        localOffer = JSON.stringify(answer, null, 4);
+        localOfferSdp = answer.sdp
     }
 
-    async function applyLocal(localOffer) {
+    async function applyLocal(localOfferSdp) {
         logEvent('l', 'setLocalDescription');
-        console.debug('localDescription ->', localOffer);
-        const sessionDesc = JSON.parse(localOffer);
+        console.debug('localDescription ->', localOfferSdp);
+        const sessionDesc = localOfferSdp;
         peerConnection.setLocalDescription(sessionDesc); //
         ($candidates[name] || []).forEach(c => {
             if (c) {
@@ -125,21 +130,26 @@
         clearCandidates(name);
     }
 
-    function applyRemote(receivedOffer) {
+    function applyRemoteOffer(receivedOffer) {
         logEvent('r', 'setRemoteDescription');
-        const sessionDesc = JSON.parse(receivedOffer);
-        console.debug('remoteDescription ->', receivedOffer);
+        const sessionDesc = packOffer(receivedOffer);
+        // console.debug('remoteDescription ->', sessionDesc);
         peerConnection.setRemoteDescription(sessionDesc);
     }
 
-    const justTheSdp = signal => JSON.parse(signal).sdp;
+    function applyRemoteAnswer(receivedOffer) {
+        logEvent('r', 'setRemoteDescription');
+        const sessionDesc = packAnswer(receivedOffer);
+        // console.debug('remoteDescription ->', sessionDesc);
+        peerConnection.setRemoteDescription(sessionDesc);
+    }
 
     onMount(() => {
         peerConnection = initPeerConnection();
         candidates.subscribe(({ [name]: candidate }) => {
             if (candidate) {
                 logEvent('rc');
-                console.debug(`received candidate by ${name}`, candidate);
+                // console.debug(`received candidate by ${name}`, candidate);
             }
         });
     });
@@ -237,25 +247,25 @@
                     1.
                     <button on:click={createOffer}>create offer</button>
                 </label>
-                {#if localOffer}
+                {#if localOfferSdp}
                     <div>
 
-                        <textarea readonly cols="60" rows="20">{justTheSdp(localOffer)}</textarea>
+                        <textarea cols="60" rows="20" bind:value={localOfferSdp}></textarea>
                         <br />
                         <label>
                             2.
-                            <button on:click={() => applyLocal(localOffer)}>setLocalDescription</button>
-                            <button on:click={() => sendOffer(localOffer)}>send offer</button>
+                            <button on:click={() => applyLocal(packOffer(localOfferSdp))}>setLocalDescription</button>
+                            <button on:click={() => sendOffer(packOffer(localOfferSdp))}>send offer</button>
                         </label>
                     </div>
                 {/if}
-                {#if $answer[name]}
+                {#if receivedAnswer}
                     <div>
-                        <textarea readonly cols="60" rows="20">{justTheSdp($answer[name])}</textarea>
+                        <textarea cols="60" rows="20" bind:value={receivedAnswer}></textarea>
                         <br />
                         <label>
                             5.
-                            <button on:click={() => applyRemote($answer[name])}>setRemoteDescription</button>
+                            <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
                         </label>
                     </div>
                 {/if}
@@ -264,23 +274,23 @@
             {#if isReceiver}
                 {#if receivedOffer}
                     <div>
-                        <textarea readonly cols="60" rows="20">{justTheSdp(receivedOffer)}</textarea>
+                        <textarea cols="60" rows="20" bind:value={receivedOffer}></textarea>
                         <br />
                         <label>
                             3.
-                            <button on:click={() => applyRemote(receivedOffer)}>setRemoteDescription</button>
+                            <button on:click={() => applyRemoteOffer(receivedOffer)}>setRemoteDescription</button>
                             <button on:click={createAnswer}>create answer</button>
                         </label>
                     </div>
                 {/if}
-                {#if localOffer}
+                {#if localOfferSdp}
                     <div>
-                        <textarea readonly cols="60" rows="20">{justTheSdp(localOffer)}</textarea>
+                        <textarea cols="60" rows="20" bind:value={localOfferSdp}></textarea>
                         <br />
                         <label>
                             4.
-                            <button on:click={() => applyLocal(localOffer)}>setLocalDescription</button>
-                            <button on:click={() => sendAnswer(localOffer)}>send answer</button>
+                            <button on:click={() => applyLocal(packAnswer(localOfferSdp))}>setLocalDescription</button>
+                            <button on:click={() => sendAnswer(packAnswer(localOfferSdp))}>send answer</button>
                         </label>
                     </div>
                 {/if}

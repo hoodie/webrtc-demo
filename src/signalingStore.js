@@ -6,7 +6,7 @@ export const candidates = writable({});
 
 const appendToStore = store => to => msg => store.update(c => ({ ...c, [to]: [...(c[to] || []), msg] }));
 
-const sendToStore = store => to => msg => store.update(c => ({ ...c, [to]: msg }));
+const sendToStore = store => to => msg => store.update(c => ({ ...c, [to]: JSON.stringify(msg) }));
 
 const resetStore = store => to => store.update(c => ({ ...c, [to]: [] }));
 

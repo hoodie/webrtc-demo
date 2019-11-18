@@ -23,8 +23,6 @@
     code {color: red;}
 </style>
 
-<h2>demo</h2>
-
 <div>
     <nav />
     <section>
