@@ -12,12 +12,14 @@
     const sendAnswer = answerTo(recipient);
     const sendCandidate = candidateTo(recipient);
     const justTheSdp = json => json && JSON.parse(json).sdp
+    const safeParse = json => { try { return JSON.parse(json); } catch (parseError) { console.warn({parseError}); return []}; }
 
     const packOffer = sdp => ({type: 'offer', sdp});
     const packAnswer = sdp => ({type: 'answer', sdp});
 
     export let isCaller = false;
     export let isReceiver = false;
+    export let isManual = false;
 
     let downstreamVideo;
     let events = [];
@@ -33,7 +35,14 @@
     $: receivedOffer = justTheSdp($offer[name]);
     $: receivedAnswer = justTheSdp($answer[name]);
 
-    let myCandidates = [];
+    let injectedOffer = '';
+    let injectedAnswer = '';
+
+    let rawCandidates = [];
+    $: readableCandidates = JSON.stringify(rawCandidates);
+
+    let injectedCandidates = '';
+    $: parsedInjectedCandidates = safeParse(injectedCandidates);
 
     let pcconfig = (() =>
         new URL(document.location).searchParams.get('semantic') === 'unified-plan'
@@ -73,7 +82,7 @@
 
         pc.onicecandidate = ({ candidate }) => {
             logEvent('lc', 'create candidate');
-            myCandidates = [...myCandidates, candidate];
+            rawCandidates = [...rawCandidates, candidate];
             sendCandidate(candidate);
         };
         pc.onsignalingstatechange = s => (signalingState = pc.signalingState);
@@ -121,12 +130,23 @@
         console.debug('localDescription ->', localOfferSdp);
         const sessionDesc = localOfferSdp;
         peerConnection.setLocalDescription(sessionDesc); //
+        if (isManual) {
+
+        (parsedInjectedCandidates || []).forEach(c => {
+            if (c) {
+                logEvent('ac', 'addIceCandidate');
+                peerConnection.addIceCandidate(c);
+            }
+        });
+        }
+        else {
         ($candidates[name] || []).forEach(c => {
             if (c) {
                 logEvent('ac', 'addIceCandidate');
                 peerConnection.addIceCandidate(c);
             }
         });
+        }
         clearCandidates(name);
     }
 
@@ -239,6 +259,10 @@
                         <input type="checkbox" bind:checked={isReceiver} />
                         receiver
                     </label>
+                    <label>
+                        <input type="checkbox" bind:checked={isManual} />
+                        manual mode
+                    </label>
                 </span>
             </fieldset>
 
@@ -259,7 +283,7 @@
                         </label>
                     </div>
                 {/if}
-                {#if receivedAnswer}
+                {#if receivedAnswer && !isManual}
                     <div>
                         <textarea cols="60" rows="20" bind:value={receivedAnswer}></textarea>
                         <br />
@@ -269,16 +293,39 @@
                         </label>
                     </div>
                 {/if}
+                {#if isManual}
+                    <div>
+                        <strong>MANUAL ANSWER HERE</strong>
+                        <textarea cols="60" rows="20" bind:value={injectedAnswer}></textarea>
+                        <br />
+                        <label>
+                            5.
+                            <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
+                        </label>
+                    </div>
+                {/if}
             {/if}
 
             {#if isReceiver}
-                {#if receivedOffer}
+                {#if receivedOffer && !isManual}
                     <div>
                         <textarea cols="60" rows="20" bind:value={receivedOffer}></textarea>
                         <br />
                         <label>
                             3.
                             <button on:click={() => applyRemoteOffer(receivedOffer)}>setRemoteDescription</button>
+                            <button on:click={createAnswer}>create answer</button>
+                        </label>
+                    </div>
+                {/if}
+                {#if isManual}
+                    <div>
+                        <strong>MANUAL OFFER HERE</strong>
+                        <textarea cols="60" rows="20" bind:value={injectedOffer}></textarea>
+                        <br />
+                        <label>
+                            3.
+                            <button on:click={() => applyRemoteOffer(injectedOffer)}>setRemoteDescription</button>
                             <button on:click={createAnswer}>create answer</button>
                         </label>
                     </div>
@@ -296,8 +343,16 @@
                 {/if}
             {/if}
 
-            {#if myCandidates.length}
-                <textarea readonly cols="60" rows="20"> {myCandidates.map(JSON.stringify).join('\n')} </textarea>
+            {#if readableCandidates.length || isManual}
+                <textarea cols="60" rows="20" bind:value={readableCandidates} ></textarea>
+            {/if}
+
+            {#if  isManual}
+            <label for="injectedCandidates">injected Candidates</label>
+                <textarea name="injectedCandidates" cols="60" rows="20" bind:value={injectedCandidates} ></textarea>
+                <pre>{
+                    JSON.stringify(parsedInjectedCandidates, null, 4)
+                }</pre>
             {/if}
 
         </div>
