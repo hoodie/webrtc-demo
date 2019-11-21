@@ -11,14 +11,23 @@
     const sendOffer = offerTo(recipient);
     const sendAnswer = answerTo(recipient);
     const sendCandidate = candidateTo(recipient);
-    const justTheSdp = json => json && JSON.parse(json).sdp
-    const safeParse = json => { try { return JSON.parse(json); } catch (parseError) { console.warn({parseError}); return []}; }
+    const justTheSdp = json => json && JSON.parse(json).sdp;
+    const safeParse = json => {
+        try {
+            return JSON.parse(json);
+        } catch (parseError) {
+            console.warn({ parseError });
+            return [];
+        }
+    };
 
-    const packOffer = sdp => ({type: 'offer', sdp});
-    const packAnswer = sdp => ({type: 'answer', sdp});
+    const packOffer = sdp => ({ type: 'offer', sdp });
+    const packAnswer = sdp => ({ type: 'answer', sdp });
 
     export let isCaller = false;
     export let isReceiver = false;
+    export let hasUpstream = false;
+    export let hasDownstream = false;
     export let isManual = false;
 
     let downstreamVideo;
@@ -116,13 +125,13 @@
             offerToReceiveVideo: true,
             offerToReceiveAudio: false,
         });
-        localOfferSdp = offer.sdp
+        localOfferSdp = offer.sdp;
     }
 
     async function createAnswer() {
         logEvent('a', 'create answer');
         const answer = await peerConnection.createAnswer();
-        localOfferSdp = answer.sdp
+        localOfferSdp = answer.sdp;
     }
 
     async function applyLocal(localOfferSdp) {
@@ -131,21 +140,19 @@
         const sessionDesc = localOfferSdp;
         peerConnection.setLocalDescription(sessionDesc); //
         if (isManual) {
-
-        (parsedInjectedCandidates || []).forEach(c => {
-            if (c) {
-                logEvent('ac', 'addIceCandidate');
-                peerConnection.addIceCandidate(c);
-            }
-        });
-        }
-        else {
-        ($candidates[name] || []).forEach(c => {
-            if (c) {
-                logEvent('ac', 'addIceCandidate');
-                peerConnection.addIceCandidate(c);
-            }
-        });
+            (parsedInjectedCandidates || []).forEach(c => {
+                if (c) {
+                    logEvent('ac', 'addIceCandidate');
+                    peerConnection.addIceCandidate(c);
+                }
+            });
+        } else {
+            ($candidates[name] || []).forEach(c => {
+                if (c) {
+                    logEvent('ac', 'addIceCandidate');
+                    peerConnection.addIceCandidate(c);
+                }
+            });
         }
         clearCandidates(name);
     }
@@ -176,7 +183,6 @@
 </script>
 
 <style>
-
     code {
         color: red;
     }
@@ -227,24 +233,32 @@
 
     <small>talking to {recipient}</small>
     <div id="streams">
-        <div id="upstream">
-            <Upstream on:stream={({ detail: stream }) => addStream(stream)} />
-        </div>
 
-        <div id="downstream">
-            <label for="downstream">downstream</label>
-            <video bind:this={downstreamVideo} autoplay="true" width="400" height="300" />
-        </div>
+        {#if hasUpstream}
+            <div id="upstream">
+                <Upstream on:stream={({ detail: stream }) => addStream(stream)} />
+            </div>
+        {/if}
+
+        {#if hasDownstream}
+            <div id="downstream">
+                <label for="downstream">downstream</label>
+                <video bind:this={downstreamVideo} autoplay="true" width="400" height="300" />
+            </div>
+        {/if}
 
         <div id="signaling">
             <label>
-            signaling: <code> {signalingState} </code>
+                signaling:
+                <code>{signalingState}</code>
             </label>
             <label>
-            connection:<code> {connectionState} </code>
+                connection:
+                <code>{connectionState}</code>
             </label>
             <label>
-            ice:       <code> {iceConnectionState} </code>
+                ice:
+                <code>{iceConnectionState}</code>
             </label>
 
             <small>{events.join(',')}</small>
@@ -274,7 +288,7 @@
                 {#if localOfferSdp}
                     <div>
 
-                        <textarea cols="60" rows="20" bind:value={localOfferSdp}></textarea>
+                        <textarea cols="60" rows="20" bind:value={localOfferSdp} />
                         <br />
                         <label>
                             2.
@@ -285,7 +299,7 @@
                 {/if}
                 {#if receivedAnswer && !isManual}
                     <div>
-                        <textarea cols="60" rows="20" bind:value={receivedAnswer}></textarea>
+                        <textarea cols="60" rows="20" bind:value={receivedAnswer} />
                         <br />
                         <label>
                             5.
@@ -296,7 +310,7 @@
                 {#if isManual}
                     <div>
                         <strong>MANUAL ANSWER HERE</strong>
-                        <textarea cols="60" rows="20" bind:value={injectedAnswer}></textarea>
+                        <textarea cols="60" rows="20" bind:value={injectedAnswer} />
                         <br />
                         <label>
                             5.
@@ -309,7 +323,7 @@
             {#if isReceiver}
                 {#if receivedOffer && !isManual}
                     <div>
-                        <textarea cols="60" rows="20" bind:value={receivedOffer}></textarea>
+                        <textarea cols="60" rows="20" bind:value={receivedOffer} />
                         <br />
                         <label>
                             3.
@@ -321,7 +335,7 @@
                 {#if isManual}
                     <div>
                         <strong>MANUAL OFFER HERE</strong>
-                        <textarea cols="60" rows="20" bind:value={injectedOffer}></textarea>
+                        <textarea cols="60" rows="20" bind:value={injectedOffer} />
                         <br />
                         <label>
                             3.
@@ -332,7 +346,7 @@
                 {/if}
                 {#if localOfferSdp}
                     <div>
-                        <textarea cols="60" rows="20" bind:value={localOfferSdp}></textarea>
+                        <textarea cols="60" rows="20" bind:value={localOfferSdp} />
                         <br />
                         <label>
                             4.
@@ -344,15 +358,13 @@
             {/if}
 
             {#if readableCandidates.length || isManual}
-                <textarea cols="60" rows="20" bind:value={readableCandidates} ></textarea>
+                <textarea cols="60" rows="20" bind:value={readableCandidates} />
             {/if}
 
-            {#if  isManual}
-            <label for="injectedCandidates">injected Candidates</label>
-                <textarea name="injectedCandidates" cols="60" rows="20" bind:value={injectedCandidates} ></textarea>
-                <pre>{
-                    JSON.stringify(parsedInjectedCandidates, null, 4)
-                }</pre>
+            {#if isManual}
+                <label for="injectedCandidates">injected Candidates</label>
+                <textarea name="injectedCandidates" cols="60" rows="20" bind:value={injectedCandidates} />
+                <pre>{JSON.stringify(parsedInjectedCandidates, null, 4)}</pre>
             {/if}
 
         </div>
