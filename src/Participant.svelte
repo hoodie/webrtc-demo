@@ -121,6 +121,7 @@
             console.info('add track');
             sender = peerConnection.addTrack(stream.getTracks()[0], stream);
         }
+        createOffer();
     }
 
     async function createOffer() {
@@ -138,8 +139,16 @@
         localOfferSdp = answer.sdp;
     }
 
+    async function copyOffer() {
+        var copyText = document.getElementById('offer');
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+    }
+
     async function applyLocal(localOfferSdp) {
         addEvent('l', 'setLocalDescription');
+        copyOffer();
         console.debug('localDescription ->', localOfferSdp);
         const sessionDesc = localOfferSdp;
         peerConnection.setLocalDescription(sessionDesc); //
@@ -267,19 +276,19 @@
             </fieldset>
 
             {#if isCaller}
-                <label> 1. <button on:click={createOffer}>create offer</button> </label>
-
-                {#if localOfferSdp}
-                    <div>
-                        <textarea cols="60" rows="20" bind:value={localOfferSdp} />
-                        <br />
-                        <label>
-                            2.
-                            <button on:click={() => applyLocal(packOffer(localOfferSdp))}>setLocalDescription</button>
-                            <button on:click={() => sendOffer(packOffer(localOfferSdp))}>send offer</button>
-                        </label>
-                    </div>
-                {/if}
+                <label>
+                    1.
+                    <button on:click={createOffer}>create offer</button>
+                </label>
+                <div>
+                    <textarea cols="60" rows="20" id="offer" bind:value={localOfferSdp} />
+                    <br />
+                    <label>
+                        2.
+                        <button on:click={() => applyLocal(packOffer(localOfferSdp))}>setLocalDescription</button>
+                        <button on:click={() => sendOffer(packOffer(localOfferSdp))}>send offer</button>
+                    </label>
+                </div>
                 {#if receivedAnswer && !$config.isManual}
                     <div>
                         <textarea cols="60" rows="20" bind:value={receivedAnswer} />
@@ -325,17 +334,15 @@
                         </label>
                     </div>
                 {/if}
-                {#if localOfferSdp}
-                    <div>
-                        <textarea cols="60" rows="20" bind:value={localOfferSdp} />
-                        <br />
-                        <label>
-                            4.
-                            <button on:click={() => applyLocal(packAnswer(localOfferSdp))}>setLocalDescription</button>
-                            <button on:click={() => sendAnswer(packAnswer(localOfferSdp))}>send answer</button>
-                        </label>
-                    </div>
-                {/if}
+                <div>
+                    <textarea cols="60" rows="20" id="offer" bind:value={localOfferSdp} />
+                    <br />
+                    <label>
+                        4.
+                        <button on:click={() => applyLocal(packAnswer(localOfferSdp))}>setLocalDescription</button>
+                        <button on:click={() => sendAnswer(packAnswer(localOfferSdp))}>send answer</button>
+                    </label>
+                </div>
             {/if}
 
             {#if readableCandidates.length || $config.isManual}
