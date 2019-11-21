@@ -31,7 +31,9 @@
         dispatch('stream', stream);
     }
 
-    onMount(() => {});
+    onMount(() => {
+        startUpstream();
+    });
 </script>
 
 <style>
