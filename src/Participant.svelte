@@ -231,7 +231,7 @@
     }
 </style>
 
-<section>
+<div>
 
     <h3>{name}</h3>
 
@@ -252,20 +252,6 @@
         {/if}
 
         <div id="signaling">
-            <label> signaling: <code>{signalingState}</code> </label>
-            <label> connection: <code>{connectionState}</code> </label>
-            <label> ice: <code>{iceConnectionState}</code> </label>
-
-            <small>{events.join(',')}</small>
-
-            <fieldset>
-                <span>
-                    <label> <input type="checkbox" bind:checked={isCaller} /> caller </label>
-                    <label> <input type="checkbox" bind:checked={isReceiver} /> receiver </label>
-                    <label> <input type="checkbox" bind:checked={$config.isManual} /> manual mode </label>
-                </span>
-            </fieldset>
-
             {#if isCaller}
                 <label> 1. <button on:click={createOffer}>create offer</button> </label>
 
@@ -337,7 +323,31 @@
                     </div>
                 {/if}
             {/if}
+        </div>
 
+        <div id="signaling">
+            <label>
+                signaling:
+                <code>{signalingState}</code>
+            </label>
+            <label>
+                connection:
+                <code>{connectionState}</code>
+            </label>
+            <label>
+                ice:
+                <code>{iceConnectionState}</code>
+            </label>
+            <small>{events.join(',')}</small>
+        </div>
+
+        <div id="signaling">
+            <label> <input type="checkbox" bind:checked={isCaller} /> caller </label>
+            <label> <input type="checkbox" bind:checked={isReceiver} /> receiver </label>
+            <label> <input type="checkbox" bind:checked={$config.isManual} /> manual mode </label>
+        </div>        
+
+        <div id="signaling">
             {#if readableCandidates.length || $config.isManual}
                 <textarea cols="60" rows="20" bind:value={readableCandidates} />
             {/if}
@@ -351,4 +361,4 @@
         </div>
 
     </div>
-</section>
+</div>
