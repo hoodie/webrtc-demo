@@ -1,7 +1,17 @@
 <script>
     import { onMount, createEventDispatcher, tick } from 'svelte';
+
+    import { config } from './store.js';
+
+    import {
+        chatTo,
+        offer, offerTo,
+        answer, answerTo,
+        candidates, candidateTo,
+        clearCandidates
+    } from './signalingStore.js';
+
     import Upstream from './Upstream.svelte';
-    import { chatTo, offer, offerTo, answer, answerTo, candidates, candidateTo, clearCandidates } from './signalingStore.js';
 
     const dispatch = createEventDispatcher();
 
@@ -16,7 +26,7 @@
         try {
             return JSON.parse(json);
         } catch (parseError) {
-            console.warn({ parseError });
+            if (json !== '') console.warn({ parseError });
             return [];
         }
     };
@@ -26,9 +36,6 @@
 
     export let isCaller = false;
     export let isReceiver = false;
-    export let hasUpstream = false;
-    export let hasDownstream = false;
-    export let isManual = false;
 
     let downstreamVideo;
     let events = [];
@@ -139,7 +146,7 @@
         console.debug('localDescription ->', localOfferSdp);
         const sessionDesc = localOfferSdp;
         peerConnection.setLocalDescription(sessionDesc); //
-        if (isManual) {
+        if ($config.isManual) {
             (parsedInjectedCandidates || []).forEach(c => {
                 if (c) {
                     logEvent('ac', 'addIceCandidate');
@@ -234,13 +241,13 @@
     <small>talking to {recipient}</small>
     <div id="streams">
 
-        {#if hasUpstream}
+        {#if $config.hasUpstream}
             <div id="upstream">
                 <Upstream on:stream={({ detail: stream }) => addStream(stream)} />
             </div>
         {/if}
 
-        {#if hasDownstream}
+        {#if $config.hasDownstream}
             <div id="downstream">
                 <label for="downstream">downstream</label>
                 <video bind:this={downstreamVideo} autoplay="true" width="400" height="300" />
@@ -248,46 +255,25 @@
         {/if}
 
         <div id="signaling">
-            <label>
-                signaling:
-                <code>{signalingState}</code>
-            </label>
-            <label>
-                connection:
-                <code>{connectionState}</code>
-            </label>
-            <label>
-                ice:
-                <code>{iceConnectionState}</code>
-            </label>
+            <label> signaling: <code>{signalingState}</code> </label>
+            <label> connection: <code>{connectionState}</code> </label>
+            <label> ice: <code>{iceConnectionState}</code> </label>
 
             <small>{events.join(',')}</small>
 
             <fieldset>
                 <span>
-                    <label>
-                        <input type="checkbox" bind:checked={isCaller} />
-                        caller
-                    </label>
-                    <label>
-                        <input type="checkbox" bind:checked={isReceiver} />
-                        receiver
-                    </label>
-                    <label>
-                        <input type="checkbox" bind:checked={isManual} />
-                        manual mode
-                    </label>
+                    <label> <input type="checkbox" bind:checked={isCaller} /> caller </label>
+                    <label> <input type="checkbox" bind:checked={isReceiver} /> receiver </label>
+                    <label> <input type="checkbox" bind:checked={$config.isManual} /> manual mode </label>
                 </span>
             </fieldset>
 
             {#if isCaller}
-                <label>
-                    1.
-                    <button on:click={createOffer}>create offer</button>
-                </label>
+                <label> 1. <button on:click={createOffer}>create offer</button> </label>
+
                 {#if localOfferSdp}
                     <div>
-
                         <textarea cols="60" rows="20" bind:value={localOfferSdp} />
                         <br />
                         <label>
@@ -297,31 +283,29 @@
                         </label>
                     </div>
                 {/if}
-                {#if receivedAnswer && !isManual}
+                {#if receivedAnswer && !$config.isManual}
                     <div>
                         <textarea cols="60" rows="20" bind:value={receivedAnswer} />
                         <br />
                         <label>
-                            5.
-                            <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
+                            5. <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
                         </label>
                     </div>
                 {/if}
-                {#if isManual}
+                {#if $config.isManual}
                     <div>
                         <strong>MANUAL ANSWER HERE</strong>
                         <textarea cols="60" rows="20" bind:value={injectedAnswer} />
                         <br />
                         <label>
-                            5.
-                            <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
+                            5. <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
                         </label>
                     </div>
                 {/if}
             {/if}
 
             {#if isReceiver}
-                {#if receivedOffer && !isManual}
+                {#if receivedOffer && !$config.isManual}
                     <div>
                         <textarea cols="60" rows="20" bind:value={receivedOffer} />
                         <br />
@@ -332,7 +316,7 @@
                         </label>
                     </div>
                 {/if}
-                {#if isManual}
+                {#if $config.isManual}
                     <div>
                         <strong>MANUAL OFFER HERE</strong>
                         <textarea cols="60" rows="20" bind:value={injectedOffer} />
@@ -357,11 +341,11 @@
                 {/if}
             {/if}
 
-            {#if readableCandidates.length || isManual}
+            {#if readableCandidates.length || $config.isManual}
                 <textarea cols="60" rows="20" bind:value={readableCandidates} />
             {/if}
 
-            {#if isManual}
+            {#if $config.isManual}
                 <label for="injectedCandidates">injected Candidates</label>
                 <textarea name="injectedCandidates" cols="60" rows="20" bind:value={injectedCandidates} />
                 <pre>{JSON.stringify(parsedInjectedCandidates, null, 4)}</pre>
