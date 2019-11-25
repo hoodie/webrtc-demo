@@ -1,21 +1,23 @@
-import { writable } from 'svelte/store';
+import { derived, writable } from 'svelte/store';
 
 // export const currentSlide = writable(0);
+import queryString from 'query-string';
 
-export const currentSlide = (() => {
-    const { subscribe, set: originalSet, update } = writable(0);
+export const config = writable({});
 
-    const stored = new URL(document.location).searchParams.get('currentSlide');
-    console.debug({stored})
-    stored && originalSet(Number(stored)-1||0);
+{
+    let { role, stream, manual } = queryString.parse(location.search);
+    config.update(config => ({
+        ...config,
+        role,
+        stream,
+        manual,
+        hasCaller: role !== 'recv',
+        hasReceiver: role !== 'call' && role !== 'send' || false,
+        hasUpstream: stream !== 'down' || false,
+        hasDownstream: stream !== 'up' || false,
+        isManual: manual && manual !== 'no' || false,
+    }));
+    console.log({ role, stream, manual });
+}
 
-    window.onpopstate = ({state: {currentSlide}}) => originalSet(currentSlide || 0);
-    const set = value => {
-        let newURL = new URL(document.location);
-        newURL.searchParams.set('currentSlide', value+1);
-        history.pushState({currentSlide: value},"",newURL);
-        originalSet(value)
-    };
-
-    return { subscribe, set, update };
-})();
