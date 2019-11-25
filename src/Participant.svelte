@@ -1,7 +1,7 @@
 <script>
     import { onMount, createEventDispatcher, tick } from 'svelte';
 
-    import { config } from './store.js';
+    import { config, addEventFor, eventLogByName } from './store.js';
 
     import {
         chatTo,
@@ -13,14 +13,19 @@
 
     import Upstream from './Upstream.svelte';
 
-    const dispatch = createEventDispatcher();
+    export let isCaller = false;
+    export let isReceiver = false;
 
     export let name = 'unnamed participant';
     export let recipient = null;
 
+    const dispatch = createEventDispatcher();
+
     const sendOffer = offerTo(recipient);
     const sendAnswer = answerTo(recipient);
     const sendCandidate = candidateTo(recipient);
+    const addEvent = addEventFor(name);
+
     const justTheSdp = json => json && JSON.parse(json).sdp;
     const safeParse = json => {
         try {
@@ -34,11 +39,8 @@
     const packOffer = sdp => ({ type: 'offer', sdp });
     const packAnswer = sdp => ({ type: 'answer', sdp });
 
-    export let isCaller = false;
-    export let isReceiver = false;
-
     let downstreamVideo;
-    let events = [];
+    $: events = $eventLogByName[name] || [];
 
     let peerConnection;
     let sender;
@@ -97,7 +99,7 @@
         };
 
         pc.onicecandidate = ({ candidate }) => {
-            logEvent('lc', 'create candidate');
+            addEvent('lc', 'create candidate');
             rawCandidates = [...rawCandidates, candidate];
             sendCandidate(candidate);
         };
@@ -109,25 +111,20 @@
         return pc;
     }
 
-    function logEvent(short, event) {
-        events = [...events, short];
-        dispatch('event', { name, short, event });
-    }
-
     function addStream(stream) {
         if (sender) {
-            logEvent('rt', 'replace track');
+            addEvent('rt', 'replace track');
             console.info('replace track', { sender });
             sender.replaceTrack(stream.getTracks()[0]);
         } else {
-            logEvent('at', 'add track');
+            addEvent('at', 'add track');
             console.info('add track');
             sender = peerConnection.addTrack(stream.getTracks()[0], stream);
         }
     }
 
     async function createOffer() {
-        logEvent('o', 'create offer');
+        addEvent('o', 'create offer');
         const offer = await peerConnection.createOffer({
             offerToReceiveVideo: true,
             offerToReceiveAudio: false,
@@ -136,27 +133,27 @@
     }
 
     async function createAnswer() {
-        logEvent('a', 'create answer');
+        addEvent('a', 'create answer');
         const answer = await peerConnection.createAnswer();
         localOfferSdp = answer.sdp;
     }
 
     async function applyLocal(localOfferSdp) {
-        logEvent('l', 'setLocalDescription');
+        addEvent('l', 'setLocalDescription');
         console.debug('localDescription ->', localOfferSdp);
         const sessionDesc = localOfferSdp;
         peerConnection.setLocalDescription(sessionDesc); //
         if ($config.isManual) {
             (parsedInjectedCandidates || []).forEach(c => {
                 if (c) {
-                    logEvent('ac', 'addIceCandidate');
+                    addEvent('ac', 'addIceCandidate');
                     peerConnection.addIceCandidate(c);
                 }
             });
         } else {
             ($candidates[name] || []).forEach(c => {
                 if (c) {
-                    logEvent('ac', 'addIceCandidate');
+                    addEvent('ac', 'addIceCandidate');
                     peerConnection.addIceCandidate(c);
                 }
             });
@@ -165,14 +162,14 @@
     }
 
     function applyRemoteOffer(receivedOffer) {
-        logEvent('r', 'setRemoteDescription');
+        addEvent('r', 'setRemoteDescription');
         const sessionDesc = packOffer(receivedOffer);
         // console.debug('remoteDescription ->', sessionDesc);
         peerConnection.setRemoteDescription(sessionDesc);
     }
 
     function applyRemoteAnswer(receivedOffer) {
-        logEvent('r', 'setRemoteDescription');
+        addEvent('r', 'setRemoteDescription');
         const sessionDesc = packAnswer(receivedOffer);
         // console.debug('remoteDescription ->', sessionDesc);
         peerConnection.setRemoteDescription(sessionDesc);
@@ -182,7 +179,7 @@
         peerConnection = initPeerConnection();
         candidates.subscribe(({ [name]: candidate }) => {
             if (candidate) {
-                logEvent('rc');
+                addEvent('rc');
                 // console.debug(`received candidate by ${name}`, candidate);
             }
         });

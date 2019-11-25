@@ -4,6 +4,17 @@ import { derived, writable } from 'svelte/store';
 import queryString from 'query-string';
 
 export const config = writable({});
+export const eventLog = writable([]);
+export const eventLogByName = writable({});
+
+export function addEvent(name, short, event) {
+    const newEvent = { name, short, event };
+    eventLog.update(events =>  ([...events, newEvent]));
+    eventLogByName.update(events =>  ({...events, [name]: [ ...events[name] ||[], short]}));
+}
+
+export const addEventFor = (name) => (short, event) => addEvent(name, short, event);
+
 
 {
     let { role, stream, manual } = queryString.parse(location.search);

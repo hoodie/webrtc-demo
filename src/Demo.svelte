@@ -1,11 +1,7 @@
 <script>
-    import { config } from './store.js';
+    import { config, eventLog } from './store.js';
 
     import Participant from './Participant.svelte';
-    let events = [];
-    const addEvent = ({ detail }) => {
-        events = [...events, detail];
-    };
 
 </script>
 
@@ -35,16 +31,16 @@
 
     <section>
         {#if $config.hasCaller}
-            <Participant name="alice" isCaller="true" recipient="bob" on:event={addEvent} />
+        <Participant name="alice" isCaller="true" recipient="bob"/>
         {/if}
 
         {#if $config.hasReceiver}
-            <Participant name="bob" isReceiver="true" recipient="alice" on:event={addEvent} />
+        <Participant name="bob" isReceiver="true" recipient="alice"/>
         {/if}
 
         <ol>
-            {#each events.filter(e => e.event) as { name, event }}
-                <li>{name}: {event}</li>
+            {#each $eventLog.filter(e => e.event) as { name, event }}
+            <li>{name}: {event}</li>
             {/each}
         </ol>
         <em>
