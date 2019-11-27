@@ -42,8 +42,10 @@
     let downstreamVideo;
     $: events = $eventLogByName[name] || [];
 
+    let downstreamAudio;
+
     let peerConnection;
-    let sender;
+    let senders = {};
 
     let signalingState = '';
     let connectionState = '';
@@ -74,10 +76,10 @@
         pc.ontrack = event => {
             const { track, streams, transceiver } = event;
             const stream = streams[0];
-            downstreamVideo.srcObject = stream;
-            stream.onaddtrack = () => console.warn(`${name}track added to stream`, { track, stream });
 
             if (track.kind == 'video') {
+                downstreamVideo.srcObject = stream;
+                stream.onaddtrack = () => console.warn(`${name}track added to stream`, { track, stream });
                 console.info(`${name}.ontrack`, {
                     track,
                     streams,
@@ -96,6 +98,10 @@
                     console.debug(`${name} track onended`, { event });
                 };
             }
+
+            if (track.kind == 'audio') {
+                downstreamAudio.srcObject = stream;
+            }
         };
 
         pc.onicecandidate = ({ candidate }) => {
@@ -112,14 +118,18 @@
     }
 
     function addStream(stream) {
+        const track = stream.getTracks()[0];
+        if (!track) return;
+        const kind = track.kind;
+        const sender = senders[kind];
         if (sender) {
             addEvent('rt', 'replace track');
             console.info('replace track', { sender });
-            sender.replaceTrack(stream.getTracks()[0]);
+            sender.replaceTrack(track);
         } else {
             addEvent('at', 'add track');
             console.info('add track');
-            sender = peerConnection.addTrack(stream.getTracks()[0], stream);
+            senders[kind] = peerConnection.addTrack(track, stream);
         }
     }
 
@@ -127,7 +137,7 @@
         addEvent('o', 'create offer');
         const offer = await peerConnection.createOffer({
             offerToReceiveVideo: true,
-            offerToReceiveAudio: false,
+            offerToReceiveAudio: true,
         });
         localOfferSdp = offer.sdp;
     }
@@ -248,6 +258,8 @@
             <div id="downstream">
                 <label for="downstream">downstream</label>
                 <video bind:this={downstreamVideo} autoplay="true" width="400" height="300" />
+                <label>audio downstream</label>
+                <audio bind:this={downstreamAudio} autoplay="true" controls=true />
             </div>
         {/if}
 
