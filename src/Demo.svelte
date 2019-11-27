@@ -1,5 +1,6 @@
 <script>
     import { config, eventLog } from './store.js';
+    import { offerStore, answerStore, candidatesStore } from './signalingStore.js';
 
     import Participant from './Participant.svelte';
 
@@ -30,6 +31,7 @@
     </aside>
 
     <section>
+
         {#if $config.hasCaller}
         <Participant name="alice" isCaller="true" recipient="bob"/>
         {/if}
@@ -38,14 +40,14 @@
         <Participant name="bob" isReceiver="true" recipient="alice"/>
         {/if}
 
-        <ol>
-            {#each $eventLog.filter(e => e.event) as { name, event }}
-            <li>{name}: {event}</li>
-            {/each}
-        </ol>
-        <em>
-            please open
-            <code>chrome://webrtc-internals</code>
-        </em>
+        <div>
+            <ol>
+                {#each $eventLog.filter(e => e.event) as { name, event }}
+                <li>{name}: {event}</li>
+                {/each}
+            </ol>
+
+            <em> please open <code>chrome://webrtc-internals</code> </em>
+        </div>
     </section>
 </div>

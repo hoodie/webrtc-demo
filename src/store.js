@@ -17,18 +17,31 @@ export const addEventFor = (name) => (short, event) => addEvent(name, short, eve
 
 
 {
-    let { role, stream, manual } = queryString.parse(location.search);
+    let { role, stream, manual, remote } = queryString.parse(location.search);
+    const hasCaller = role !== 'recv';
+    const hasReceiver = role !== 'call' && role !== 'send' || false;
+    const hasUpstream = stream !== 'down' || false;
+    const hasDownstream = stream !== 'up' || false;
+    const isManual = manual && manual !== 'no' || false;
+    const isRemote = remote && remote !== 'no' || false;
+    const to = hasCaller ? 'bob' : 'alice';
+    const from = hasReceiver ? 'bob' : 'alice';
+
     config.update(config => ({
         ...config,
         role,
         stream,
         manual,
-        hasCaller: role !== 'recv',
-        hasReceiver: role !== 'call' && role !== 'send' || false,
-        hasUpstream: stream !== 'down' || false,
-        hasDownstream: stream !== 'up' || false,
-        isManual: manual && manual !== 'no' || false,
+        remote,
+        hasCaller,
+        hasReceiver,
+        hasUpstream,
+        hasDownstream,
+        isManual,
+        isRemote,
+        to,
+        from,
     }));
-    console.log({ role, stream, manual });
+    console.log({ role, stream, manual, remote, to, from });
 }
 

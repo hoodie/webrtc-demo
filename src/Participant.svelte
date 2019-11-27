@@ -1,17 +1,18 @@
 <script>
     import { onMount, createEventDispatcher, tick } from 'svelte';
-
     import { config, addEventFor, eventLogByName } from './store.js';
-
     import {
-        chatTo,
-        offer, offerTo,
-        answer, answerTo,
-        candidates, candidateTo,
-        clearCandidates
+        offerStore, answerStore, candidatesStore,
+        sendOfferFrom,
+        sendAnswerFrom,
+        sendCandidateFrom,
+        clearCandidatesFrom
     } from './signalingStore.js';
+    import { SignalingClient } from './signalingClient.js';
+    import { justTheSdp, safeParse,packOffer, packAnswer } from './util.js'
 
     import Upstream from './Upstream.svelte';
+    import RemoteBar from './RemoteBar.svelte';
 
     export let isCaller = false;
     export let isReceiver = false;
@@ -19,25 +20,14 @@
     export let name = 'unnamed participant';
     export let recipient = null;
 
+    const signalingClient = new SignalingClient({
+        from: name,
+        to: recipient,
+    });
+
     const dispatch = createEventDispatcher();
 
-    const sendOffer = offerTo(recipient);
-    const sendAnswer = answerTo(recipient);
-    const sendCandidate = candidateTo(recipient);
     const addEvent = addEventFor(name);
-
-    const justTheSdp = json => json && JSON.parse(json).sdp;
-    const safeParse = json => {
-        try {
-            return JSON.parse(json);
-        } catch (parseError) {
-            if (json !== '') console.warn({ parseError });
-            return [];
-        }
-    };
-
-    const packOffer = sdp => ({ type: 'offer', sdp });
-    const packAnswer = sdp => ({ type: 'answer', sdp });
 
     let downstreamVideo;
     $: events = $eventLogByName[name] || [];
@@ -50,8 +40,8 @@
     let iceConnectionState = '';
 
     let localOfferSdp = '';
-    $: receivedOffer = justTheSdp($offer[name]);
-    $: receivedAnswer = justTheSdp($answer[name]);
+    $: receivedOffer = justTheSdp($offerStore[recipient]);
+    $: receivedAnswer = justTheSdp($answerStore[recipient]);
 
     let injectedOffer = '';
     let injectedAnswer = '';
@@ -66,6 +56,16 @@
         new URL(document.location).searchParams.get('semantic') === 'unified-plan'
             ? { sdpSemantics: 'unified-plan' }
             : { sdpSemantics: 'plan-b' })();
+
+    
+    // $: if (!$config.isManual) {
+    //     ($candidatesStore[recipient] || []).forEach(c => {
+    //         if (c) {
+    //             addEvent('ac', 'addIceCandidate');
+    //             peerConnection.addIceCandidate(c).catch(e => console.warn('whoopsie',e));
+    //         }
+    //     });
+    // }
 
     function initPeerConnection() {
         pcconfig.sdpSemantics === 'unified-plan';
@@ -138,11 +138,44 @@
         localOfferSdp = answer.sdp;
     }
 
+    function sendOffer() {
+        const offer = packOffer(localOfferSdp);
+        sendOfferFrom({ from: name, offer })
+        $config.isRemote && signalingClient.sendOffer(offer);
+    }
+
+    function sendAnswer() {
+        const answer = packOffer(localOfferSdp);
+        sendAnswerFrom({ from: name, answer})
+        $config.isRemote && signalingClient.sendAnswer(answer);
+    }
+
+    function sendCandidate(candidate) {
+        if (name && candidate) {
+            sendCandidateFrom({ from: name, candidate})
+            $config.isRemote && signalingClient.sendCandidate(candidate);
+        }
+    }
+
     async function applyLocal(localOfferSdp) {
         addEvent('l', 'setLocalDescription');
         console.debug('localDescription ->', localOfferSdp);
         const sessionDesc = localOfferSdp;
+        clearCandidatesFrom(name);
         peerConnection.setLocalDescription(sessionDesc); //
+        applyCandidates();
+        clearCandidatesFrom(recipient);
+    }
+
+    function applyRemoteOffer(receivedOffer) {
+        addEvent('r', 'setRemoteDescription');
+        const sessionDesc = packOffer(receivedOffer);
+        peerConnection.setRemoteDescription(sessionDesc);
+        applyCandidates();
+        clearCandidatesFrom(recipient);
+    }
+
+    function applyCandidates() {
         if ($config.isManual) {
             (parsedInjectedCandidates || []).forEach(c => {
                 if (c) {
@@ -151,38 +184,34 @@
                 }
             });
         } else {
-            ($candidates[name] || []).forEach(c => {
+            console.debug($candidatesStore[recipient]);
+            ($candidatesStore[recipient] || []).forEach(c => {
                 if (c) {
                     addEvent('ac', 'addIceCandidate');
                     peerConnection.addIceCandidate(c);
                 }
             });
         }
-        clearCandidates(name);
-    }
-
-    function applyRemoteOffer(receivedOffer) {
-        addEvent('r', 'setRemoteDescription');
-        const sessionDesc = packOffer(receivedOffer);
-        // console.debug('remoteDescription ->', sessionDesc);
-        peerConnection.setRemoteDescription(sessionDesc);
     }
 
     function applyRemoteAnswer(receivedOffer) {
         addEvent('r', 'setRemoteDescription');
         const sessionDesc = packAnswer(receivedOffer);
-        // console.debug('remoteDescription ->', sessionDesc);
         peerConnection.setRemoteDescription(sessionDesc);
+        clearCandidatesFrom(name);
     }
 
     onMount(() => {
         peerConnection = initPeerConnection();
-        candidates.subscribe(({ [name]: candidate }) => {
+        candidatesStore.subscribe(({ [recipient]: candidate }) => {
             if (candidate) {
                 addEvent('rc');
                 // console.debug(`received candidate by ${name}`, candidate);
             }
         });
+        if ($config.hasCaller) {
+            createOffer()
+        }
     });
 </script>
 
@@ -234,7 +263,9 @@
 <section>
 
     <h3>{name}</h3>
-
+    {#if $config.isRemote}
+    <RemoteBar {signalingClient}/>
+    {/if}
     <small>talking to {recipient}</small>
     <div id="streams">
 
@@ -276,7 +307,7 @@
                         <label>
                             2.
                             <button on:click={() => applyLocal(packOffer(localOfferSdp))}>setLocalDescription</button>
-                            <button on:click={() => sendOffer(packOffer(localOfferSdp))}>send offer</button>
+                            <button on:click={sendOffer}>send offer</button>
                         </label>
                     </div>
                 {/if}
@@ -332,7 +363,7 @@
                         <label>
                             4.
                             <button on:click={() => applyLocal(packAnswer(localOfferSdp))}>setLocalDescription</button>
-                            <button on:click={() => sendAnswer(packAnswer(localOfferSdp))}>send answer</button>
+                            <button on:click={sendAnswer}>send answer</button>
                         </label>
                     </div>
                 {/if}

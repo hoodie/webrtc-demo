@@ -33,4 +33,5 @@ server.on('upgrade', function upgrade(request, socket, head) {
     });
 });
   
+console.info('listening on', config.signalingServer.port);
 server.listen(config.signalingServer.port);

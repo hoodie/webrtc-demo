@@ -1,16 +1,32 @@
 import { writable } from 'svelte/store';
 
-export const offer = writable({});
-export const answer = writable({});
-export const candidates = writable({});
+export const offerStore = writable({/*[from]: {type: 'offer', sdp: string}*/});
+export const answerStore = writable({/*[from]: {type: 'answer', sdp: string}*/});
+export const candidatesStore = writable({/*[from]: [Candidate]*/});
 
-const appendToStore = store => to => msg => store.update(c => ({ ...c, [to]: [...(c[to] || []), msg] }));
+export function sendOfferFrom({from, offer}) {
+    offerStore.update(
+        store => ({ ...store, [from]: offer })
+    );
+};
 
-const sendToStore = store => to => msg => store.update(c => ({ ...c, [to]: JSON.stringify(msg) }));
+export function sendAnswerFrom({from, answer}) {
+    answerStore.update(
+        store => ({ ...store, [from]: answer })
+    );
+};
 
-const resetStore = store => to => store.update(c => ({ ...c, [to]: [] }));
+export function sendCandidateFrom({from, candidate}) {
+    candidatesStore.update(
+        store => {
+            const existingCandidates = store[from] || [];
+            return{ ...store, [from]: [...existingCandidates, candidate] }
+        }
+    );
+};
 
-export const offerTo = sendToStore(offer);
-export const answerTo = sendToStore(answer);
-export const candidateTo = appendToStore(candidates);
-export const clearCandidates = resetStore(candidates);
+export function clearCandidatesFrom({from}) {
+    candidatesStore.update(
+        store => ({ ...store, [from]: [] })
+    );
+}

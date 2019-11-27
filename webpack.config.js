@@ -54,6 +54,8 @@ module.exports = {
 	
 	devServer: {
 		contentBase: "docs",
+		host: '0.0.0.0' ,
+		disableHostCheck: true,
 		proxy: {
 		  '/signaling': {
 			 target: `ws://localhost:${config.signalingServer.port}`,
