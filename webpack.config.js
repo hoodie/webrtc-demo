@@ -3,6 +3,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const mode = process.env.NODE_ENV || 'development';
 const prod = mode === 'production';
 
+const config = require('./config.json');
+
 module.exports = {
 	entry: {
 		bundle: ['./src/main.js']
@@ -48,5 +50,16 @@ module.exports = {
 			filename: '[name].css'
 		})
 	],
-	devtool: prod ? false: 'source-map'
+	devtool: prod ? false: 'source-map',
+	
+	devServer: {
+		contentBase: "docs",
+		proxy: {
+		  '/signaling': {
+			 target: `ws://localhost:${config.signalingServer.port}`,
+			 ws: true
+		  },
+		},
+		https: true
+	  }
 };

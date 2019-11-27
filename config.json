@@ -1,0 +1,5 @@
+{
+    "signalingServer" : {
+        "port": 4443
+    }
+}
