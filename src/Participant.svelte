@@ -3,13 +3,7 @@
 
     import { config, addEventFor, eventLogByName } from './store.js';
 
-    import {
-        chatTo,
-        offer, offerTo,
-        answer, answerTo,
-        candidates, candidateTo,
-        clearCandidates
-    } from './signalingStore.js';
+    import { chatTo, offer, offerTo, answer, answerTo, candidates, candidateTo, clearCandidates } from './signalingStore.js';
 
     import Upstream from './Upstream.svelte';
 
@@ -223,15 +217,9 @@
         font-family: monospace;
         width: 100%;
     }
-    fieldset {
-        display: flex;
-    }
-    fieldset span {
-        display: inline;
-    }
 </style>
 
-<section>
+<div>
 
     <h3>{name}</h3>
 
@@ -252,20 +240,6 @@
         {/if}
 
         <div id="signaling">
-            <label> signaling: <code>{signalingState}</code> </label>
-            <label> connection: <code>{connectionState}</code> </label>
-            <label> ice: <code>{iceConnectionState}</code> </label>
-
-            <small>{events.join(',')}</small>
-
-            <fieldset>
-                <span>
-                    <label> <input type="checkbox" bind:checked={isCaller} /> caller </label>
-                    <label> <input type="checkbox" bind:checked={isReceiver} /> receiver </label>
-                    <label> <input type="checkbox" bind:checked={$config.isManual} /> manual mode </label>
-                </span>
-            </fieldset>
-
             {#if isCaller}
                 <label> 1. <button on:click={createOffer}>create offer</button> </label>
 
@@ -285,7 +259,8 @@
                         <textarea cols="60" rows="20" bind:value={receivedAnswer} />
                         <br />
                         <label>
-                            5. <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
+                            5.
+                            <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
                         </label>
                     </div>
                 {/if}
@@ -295,7 +270,8 @@
                         <textarea cols="60" rows="20" bind:value={injectedAnswer} />
                         <br />
                         <label>
-                            5. <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
+                            5.
+                            <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
                         </label>
                     </div>
                 {/if}
@@ -337,7 +313,40 @@
                     </div>
                 {/if}
             {/if}
+        </div>
 
+        <div id="signaling">
+            <label>
+                signaling:
+                <code>{signalingState}</code>
+            </label>
+            <label>
+                connection:
+                <code>{connectionState}</code>
+            </label>
+            <label>
+                ice:
+                <code>{iceConnectionState}</code>
+            </label>
+            <small>{events.join(',')}</small>
+        </div>
+
+        <div id="signaling">
+            <label>
+                <input type="checkbox" bind:checked={isCaller} />
+                caller
+            </label>
+            <label>
+                <input type="checkbox" bind:checked={isReceiver} />
+                receiver
+            </label>
+            <label>
+                <input type="checkbox" bind:checked={$config.isManual} />
+                manual mode
+            </label>
+        </div>
+
+        <div id="signaling">
             {#if readableCandidates.length || $config.isManual}
                 <textarea cols="60" rows="20" bind:value={readableCandidates} />
             {/if}
@@ -351,4 +360,4 @@
         </div>
 
     </div>
-</section>
+</div>
