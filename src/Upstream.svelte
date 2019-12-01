@@ -9,6 +9,10 @@
         return await navigator.mediaDevices.getUserMedia({ video: true });
     }
 
+    async function getAudioFeed() {
+        return await navigator.mediaDevices.getUserMedia({ audio: true, echoCancellation: {exact: false} });
+    }
+
     function getNoiseFeed() {
         let canvas = Object.assign(document.createElement('canvas'), { width: 400, height: 300 });
         let ctx = canvas.getContext('2d');
@@ -29,6 +33,13 @@
         console.debug({ stream });
         upstreamVideo.srcObject = stream;
         dispatch('stream', stream);
+    }
+
+    async function startAudioUpstream() {
+        const audioStream = await getAudioFeed();
+        console.debug({ audioStream });
+    
+        dispatch('stream', audioStream);
     }
 
     onMount(() => {});
@@ -65,4 +76,7 @@
         </label>
     </span>
 
+</nav>
+<nav>
+    <button on:click={startAudioUpstream}>start audio</button>
 </nav>
