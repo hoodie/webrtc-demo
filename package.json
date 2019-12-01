@@ -2,7 +2,7 @@
   "name": "svelte-app",
   "version": "1.0.0",
   "devDependencies": {
-    "cross-env": "^5.2.0",
+    "cross-env": "^6.0.3",
     "css-loader": "^3.2.0",
     "mini-css-extract-plugin": "^0.8.0",
     "serve": "^11.0.0",

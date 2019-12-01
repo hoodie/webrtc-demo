@@ -2,6 +2,7 @@
     import { config, eventLog } from './store.js';
     import { offerStore, answerStore, candidatesStore } from './signalingStore.js';
 
+    import Config from './Config.svelte';
     import Participant from './Participant.svelte';
 
 </script>
@@ -27,7 +28,7 @@
 
 <div>
     <aside>
-        <code><pre>{JSON.stringify($config)}</pre> </code>
+        <Config/>
     </aside>
 
     <section>
