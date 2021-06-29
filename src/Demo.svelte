@@ -1,9 +1,10 @@
 <script>
-    import { config, eventLog } from './store.js';
+    import { config } from './store.js';
     import { offerStore, answerStore, candidatesStore } from './signalingStore.js';
 
     import Config from './Config.svelte';
     import Participant from './Participant.svelte';
+    import EventLog from './EventLog.svelte';
 
 </script>
 
@@ -41,14 +42,10 @@
         <Participant name="bob" isReceiver="true" recipient="alice"/>
         {/if}
 
+        {#if !$config.hideDetails}
         <div>
-            <ol>
-                {#each $eventLog.filter(e => e.event) as { name, event }}
-                <li>{name}: {event}</li>
-                {/each}
-            </ol>
-
-            <em> please open <code>chrome://webrtc-internals</code> </em>
+            <EventLog />
         </div>
+        {/if}
     </section>
 </div>

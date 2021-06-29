@@ -295,7 +295,9 @@
             <label> connection: <code>{connectionState}</code> </label>
             <label> ice: <code>{iceConnectionState}</code> </label>
 
+            {#if !hideDetails}
             <small>{events.join(',')}</small>
+            {/if}
 
             <fieldset>
                 <span>
