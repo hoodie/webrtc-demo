@@ -49,7 +49,9 @@
 </style>
 
 <label for="upstream">upstream</label>
-<video id="upstream" bind:this={upstreamVideo} autoplay="true" width="400" height="300" />
+<video id="upstream" bind:this={upstreamVideo} autoplay="true" width="400" height="300" >
+    <track kind="captions" />
+</video>
 <nav>
 
     <button on:click={startUpstream}>start upstream</button>

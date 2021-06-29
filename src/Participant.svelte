@@ -286,14 +286,18 @@
         {#if $config.hasDownstream}
             <div id="downstream">
                 <label for="downstream">downstream</label>
-                <video bind:this={downstreamVideo} autoplay="true" width="400" height="300" />
+                <video bind:this={downstreamVideo} autoplay="true" width="400" height="300" >
+                    <track kind="captions" />
+                </video>
             </div>
         {/if}
 
         <div id="signaling">
-            <label> signaling: <code>{signalingState}</code> </label>
-            <label> connection: <code>{connectionState}</code> </label>
-            <label> ice: <code>{iceConnectionState}</code> </label>
+        <dl>
+            <dt> signaling: <code>{signalingState}</code> </dt>
+            <dt> connection: <code>{connectionState}</code> </dt>
+            <dt> ice: <code>{iceConnectionState}</code> </dt>
+        </dl>
 
             {#if !hideDetails}
             <small>{events.join(',')}</small>
