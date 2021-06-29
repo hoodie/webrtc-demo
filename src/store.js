@@ -20,6 +20,7 @@ export const query = writable(
             stream: original_query.stream || 'both',
             manual: boolify(original_query.manual),
             remote: boolify(original_query.remote),
+            hideDetails: boolify(original_query.hideDetails),
         };
 
         return Object.entries(filled_query).map(([key, value]) => ({ key, value }))
@@ -35,7 +36,7 @@ export const config = derived(
     $query => {
 
         const config = Object.fromEntries($query.map(({ key, value }) => [key, value]));
-        let { role, stream, manual, remote } = config;
+        let { role, stream, manual, remote, hideDetails } = config;
 
         const hasCaller = role !== 'recv';
         const hasReceiver = role !== 'call' && role !== 'send' || false;
@@ -51,6 +52,7 @@ export const config = derived(
             role, stream, manual, remote, 
             hasCaller, hasReceiver, hasUpstream, hasDownstream,
             isManual, isRemote,
+            hideDetails,
             to, from,
         });
 

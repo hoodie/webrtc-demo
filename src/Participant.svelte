@@ -201,6 +201,8 @@
         clearCandidatesFrom(name);
     }
 
+    $: hideDetails = $config.hideDetails
+
     onMount(() => {
         peerConnection = initPeerConnection();
         candidatesStore.subscribe(({ [recipient]: candidate }) => {
@@ -258,6 +260,9 @@
     fieldset span {
         display: inline;
     }
+    .hideDetails {
+        display: none;
+    }
 </style>
 
 <section>
@@ -302,7 +307,7 @@
 
                 {#if localOfferSdp}
                     <div>
-                        <textarea cols="60" rows="20" bind:value={localOfferSdp} />
+                        <textarea class:hideDetails cols="60" rows="20" bind:value={localOfferSdp} />
                         <br />
                         <label>
                             2.
@@ -313,7 +318,7 @@
                 {/if}
                 {#if receivedAnswer && !$config.isManual}
                     <div>
-                        <textarea cols="60" rows="20" bind:value={receivedAnswer} />
+                        <textarea class:hideDetails cols="60" rows="20" bind:value={receivedAnswer} />
                         <br />
                         <label>
                             5. <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
@@ -335,7 +340,7 @@
             {#if isReceiver}
                 {#if receivedOffer && !$config.isManual}
                     <div>
-                        <textarea cols="60" rows="20" bind:value={receivedOffer} />
+                        <textarea class:hideDetails cols="60" rows="20" bind:value={receivedOffer} />
                         <br />
                         <label>
                             3.
@@ -358,7 +363,7 @@
                 {/if}
                 {#if localOfferSdp}
                     <div>
-                        <textarea cols="60" rows="20" bind:value={localOfferSdp} />
+                        <textarea class:hideDetails  cols="60" rows="20" bind:value={localOfferSdp} />
                         <br />
                         <label>
                             4.
@@ -370,7 +375,7 @@
             {/if}
 
             {#if readableCandidates.length || $config.isManual}
-                <textarea cols="60" rows="20" bind:value={readableCandidates} />
+                <textarea class:hideDetails cols="60" rows="20" bind:value={readableCandidates} />
             {/if}
 
             {#if $config.isManual}
