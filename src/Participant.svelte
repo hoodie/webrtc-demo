@@ -43,6 +43,9 @@
     $: receivedOffer = justTheSdp($offerStore[recipient]);
     $: receivedAnswer = justTheSdp($answerStore[recipient]);
 
+
+    let localAnswerSdp = '';
+
     let injectedOffer = '';
     let injectedAnswer = '';
 
@@ -135,7 +138,7 @@
     async function createAnswer() {
         addEvent('a', 'create answer');
         const answer = await peerConnection.createAnswer();
-        localOfferSdp = answer.sdp;
+        localAnswerSdp = answer.sdp;
     }
 
     function sendOffer() {
@@ -145,7 +148,7 @@
     }
 
     function sendAnswer() {
-        const answer = packOffer(localOfferSdp);
+        const answer = packOffer(localAnswerSdp);
         sendAnswerFrom({ from: name, answer})
         $config.isRemote && signalingClient.sendAnswer(answer);
     }
@@ -361,13 +364,13 @@
                         </label>
                     </div>
                 {/if}
-                {#if localOfferSdp}
+                {#if localAnswerSdp && receivedOffer}
                     <div>
-                        <textarea class:hideDetails  cols="60" rows="20" bind:value={localOfferSdp} />
+                        <textarea class:hideDetails  cols="60" rows="20" bind:value={localAnswerSdp} />
                         <br />
                         <label>
                             4.
-                            <button on:click={() => applyLocal(packAnswer(localOfferSdp))}>setLocalDescription</button>
+                            <button on:click={() => applyLocal(packAnswer(localAnswerSdp))}>setLocalDescription</button>
                             <button on:click={sendAnswer}>send answer</button>
                         </label>
                     </div>
