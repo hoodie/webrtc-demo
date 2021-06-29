@@ -1,7 +1,6 @@
 import { derived, writable } from 'svelte/store';
 
 // export const currentSlide = writable(0);
-import queryString from 'query-string';
 
 export const eventLog = writable([]);
 
@@ -12,23 +11,31 @@ const boolify = value => {
     } catch {return false}
 };
 
+const queryStringify = (entries) => {
+    const params = new URLSearchParams();
+    for (let [key, val] of entries) {
+        params.set(key, val)
+    }
+    return params.toString();
+}
+
 export const query = writable(
 (() => {
-        const original_query = queryString.parse(location.search);
-        const filled_query = {
-            role: original_query.role || 'both',
-            stream: original_query.stream || 'both',
-            manual: boolify(original_query.manual),
-            remote: boolify(original_query.remote),
-            hideDetails: boolify(original_query.hideDetails),
+        const queryEntries = Object.fromEntries(new URLSearchParams(location.search).entries())
+        const filledQuery = {
+            role: queryEntries.role || 'both',
+            stream: queryEntries.stream || 'both',
+            manual: boolify(queryEntries.manual),
+            remote: boolify(queryEntries.remote),
+            hideDetails: boolify(queryEntries.hideDetails),
         };
 
-        return Object.entries(filled_query).map(([key, value]) => ({ key, value }))
+        return Object.entries(filledQuery).map(([key, value]) => ({ key, value }))
     })()
 );
 
 export const configUrl = derived(query, $query =>
-    `${window.location.protocol}//${window.location.host}/?${queryString.stringify(Object.fromEntries($query.map(({ key, value }) => [key, value])))}`
+    `${window.location.protocol}//${window.location.host}/?${queryStringify($query.map(({ key, value }) => [key, value]))}`
 );
 
 export const config = derived(
