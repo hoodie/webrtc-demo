@@ -60,16 +60,6 @@
             ? { sdpSemantics: 'unified-plan' }
             : { sdpSemantics: 'plan-b' })();
 
-    
-    // $: if (!$config.isManual) {
-    //     ($candidatesStore[recipient] || []).forEach(c => {
-    //         if (c) {
-    //             addEvent('ac', 'addIceCandidate');
-    //             peerConnection.addIceCandidate(c).catch(e => console.warn('whoopsie',e));
-    //         }
-    //     });
-    // }
-
     function initPeerConnection() {
         pcconfig.sdpSemantics === 'unified-plan';
 
@@ -307,7 +297,6 @@
                 <span>
                     <label> <input type="checkbox" bind:checked={isCaller} /> caller </label>
                     <label> <input type="checkbox" bind:checked={isReceiver} /> receiver </label>
-                    <label> <input type="checkbox" bind:checked={$config.isManual} /> manual mode </label>
                 </span>
             </fieldset>
 
@@ -384,7 +373,7 @@
             {/if}
 
             {#if readableCandidates.length || $config.isManual}
-                <textarea class:hideDetails cols="60" rows="20" bind:value={readableCandidates} />
+                <textarea class:hideDetails cols="60" rows="10" bind:value={readableCandidates} />
             {/if}
 
             {#if $config.isManual}
