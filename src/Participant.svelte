@@ -70,7 +70,10 @@
             const { track, streams, transceiver } = event;
             const stream = streams[0];
             downstreamComponent.$set({ stream });
-            stream.onaddtrack = () => console.warn(`${name}track added to stream`, { track, stream });
+            stream.onaddtrack = () => {
+                addEvent('ta', 'track added');
+                console.warn(`${name}track added to stream`, { track, stream });
+            };
 
             if (track.kind == 'video') {
                 console.info(`${name}.ontrack`, {
@@ -80,12 +83,15 @@
                     transceiver,
                 });
                 track.onmute = event => {
+                    addEvent('tm', 'track muted');
                     console.info(`${name} track onmute`, { event });
                 };
                 track.onunmute = event => {
+                    addEvent('tu', 'track unmuted');
                     console.info(`${name} track onunmute`, { event });
                 };
                 track.onended = event => {
+                    addEvent('te', 'track ended');
                     console.debug(`${name} track onended`, { event });
                 };
             }
