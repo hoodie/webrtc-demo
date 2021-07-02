@@ -37,7 +37,7 @@
             <Participant name="bob" isReceiver="true" recipient="alice" />
         {/if}
 
-        {#if !$config.hideDetails}
+        {#if !$config.hideSignaling}
             <div>
                 <EventLog />
             </div>

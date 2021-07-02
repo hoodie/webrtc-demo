@@ -200,7 +200,7 @@
         clearCandidatesFrom(name);
     }
 
-    $: hideDetails = $config.hideDetails;
+    $: hideSignaling = $config.hideSignaling;
 
     onMount(() => {
         peerConnection = initPeerConnection();
@@ -247,7 +247,7 @@
     fieldset span {
         display: inline;
     }
-    .hideDetails {
+    .hideSignaling {
         display: none;
     }
 </style>
@@ -288,7 +288,7 @@
                 </dt>
             </dl>
 
-            {#if !hideDetails}
+            {#if !hideSignaling}
                 <small>{events.join(',')}</small>
             {/if}
 
@@ -313,7 +313,7 @@
 
                 {#if localOfferSdp}
                     <div>
-                        <textarea class:hideDetails cols="60" rows="20" bind:value={localOfferSdp} />
+                        <textarea class:hideSignaling cols="60" rows="20" bind:value={localOfferSdp} />
                         <br />
                         <label>
                             2.
@@ -324,7 +324,7 @@
                 {/if}
                 {#if receivedAnswer && !$config.isManual}
                     <div>
-                        <textarea class:hideDetails cols="60" rows="20" bind:value={receivedAnswer} />
+                        <textarea class:hideSignaling cols="60" rows="20" bind:value={receivedAnswer} />
                         <br />
                         <label>
                             5.
@@ -348,7 +348,7 @@
             {#if isReceiver}
                 {#if receivedOffer && !$config.isManual}
                     <div>
-                        <textarea class:hideDetails cols="60" rows="20" bind:value={receivedOffer} />
+                        <textarea class:hideSignaling cols="60" rows="20" bind:value={receivedOffer} />
                         <br />
                         <label>
                             3.
@@ -371,7 +371,7 @@
                 {/if}
                 {#if localAnswerSdp && receivedOffer}
                     <div>
-                        <textarea class:hideDetails cols="60" rows="20" bind:value={localAnswerSdp} />
+                        <textarea class:hideSignaling cols="60" rows="20" bind:value={localAnswerSdp} />
                         <br />
                         <label>
                             4.
@@ -383,7 +383,7 @@
             {/if}
 
             {#if readableCandidates.length || $config.isManual}
-                <textarea class:hideDetails cols="60" rows="10" bind:value={readableCandidates} />
+                <textarea class:hideSignaling cols="60" rows="10" bind:value={readableCandidates} />
             {/if}
 
             {#if $config.isManual}
