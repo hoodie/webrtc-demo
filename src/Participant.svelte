@@ -2,16 +2,19 @@
     import { onMount, createEventDispatcher, tick } from 'svelte';
     import { config, addEventFor, eventLogByName } from './store.js';
     import {
-        offerStore, answerStore, candidatesStore,
+        offerStore,
+        answerStore,
+        candidatesStore,
         sendOfferFrom,
         sendAnswerFrom,
         sendCandidateFrom,
-        clearCandidatesFrom
+        clearCandidatesFrom,
     } from './signalingStore.js';
     import { SignalingClient } from './signalingClient.js';
-    import { justTheSdp, safeParse,packOffer, packAnswer } from './util.js'
+    import { justTheSdp, safeParse, packOffer, packAnswer } from './util.js';
 
     import Upstream from './Upstream.svelte';
+    import Downstream from './Downstream.svelte';
     import RemoteBar from './RemoteBar.svelte';
 
     export let isCaller = false;
@@ -29,7 +32,7 @@
 
     const addEvent = addEventFor(name);
 
-    let downstreamVideo;
+    let downstreamComponent;
     $: events = $eventLogByName[name] || [];
 
     let peerConnection;
@@ -42,7 +45,6 @@
     let localOfferSdp = '';
     $: receivedOffer = justTheSdp($offerStore[recipient]);
     $: receivedAnswer = justTheSdp($answerStore[recipient]);
-
 
     let localAnswerSdp = '';
 
@@ -67,7 +69,7 @@
         pc.ontrack = event => {
             const { track, streams, transceiver } = event;
             const stream = streams[0];
-            downstreamVideo.srcObject = stream;
+            downstreamComponent.$set({ stream });
             stream.onaddtrack = () => console.warn(`${name}track added to stream`, { track, stream });
 
             if (track.kind == 'video') {
@@ -79,11 +81,9 @@
                 });
                 track.onmute = event => {
                     console.info(`${name} track onmute`, { event });
-                    downstreamVideo.srcObject = null;
                 };
                 track.onunmute = event => {
                     console.info(`${name} track onunmute`, { event });
-                    downstreamVideo.srcObject = stream;
                 };
                 track.onended = event => {
                     console.debug(`${name} track onended`, { event });
@@ -133,19 +133,19 @@
 
     function sendOffer() {
         const offer = packOffer(localOfferSdp);
-        sendOfferFrom({ from: name, offer })
+        sendOfferFrom({ from: name, offer });
         $config.isRemote && signalingClient.sendOffer(offer);
     }
 
     function sendAnswer() {
         const answer = packOffer(localAnswerSdp);
-        sendAnswerFrom({ from: name, answer})
+        sendAnswerFrom({ from: name, answer });
         $config.isRemote && signalingClient.sendAnswer(answer);
     }
 
     function sendCandidate(candidate) {
         if (name && candidate) {
-            sendCandidateFrom({ from: name, candidate})
+            sendCandidateFrom({ from: name, candidate });
             $config.isRemote && signalingClient.sendCandidate(candidate);
         }
     }
@@ -194,7 +194,7 @@
         clearCandidatesFrom(name);
     }
 
-    $: hideDetails = $config.hideDetails
+    $: hideDetails = $config.hideDetails;
 
     onMount(() => {
         peerConnection = initPeerConnection();
@@ -205,7 +205,7 @@
             }
         });
         if ($config.hasCaller) {
-            createOffer()
+            createOffer();
         }
     });
 </script>
@@ -217,18 +217,6 @@
     #streams {
         display: flex;
         flex-wrap: wrap;
-    }
-
-    video {
-        padding: 0.5em;
-        border: 1px solid #aaa;
-        border-radius: 2px;
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-        margin: 0 0 1em 0;
-    }
-
-    video {
-        background-color: black;
     }
 
     #upstream,
@@ -259,10 +247,9 @@
 </style>
 
 <section>
-
     <h3>{name}</h3>
     {#if $config.isRemote}
-    <RemoteBar {signalingClient}/>
+        <RemoteBar {signalingClient} />
     {/if}
     <small>talking to {recipient}</small>
     <div id="streams">
@@ -275,33 +262,48 @@
 
         {#if $config.hasDownstream}
             <div id="downstream">
-                <label for="downstream">downstream</label>
-                <video bind:this={downstreamVideo} autoplay="true" width="400" height="300" >
-                    <track kind="captions" />
-                </video>
+                <Downstream bind:this={downstreamComponent} />
             </div>
         {/if}
 
         <div id="signaling">
-        <dl>
-            <dt> signaling: <code>{signalingState}</code> </dt>
-            <dt> connection: <code>{connectionState}</code> </dt>
-            <dt> ice: <code>{iceConnectionState}</code> </dt>
-        </dl>
+            <dl>
+                <dt>
+                    signaling:
+                    <code>{signalingState}</code>
+                </dt>
+                <dt>
+                    connection:
+                    <code>{connectionState}</code>
+                </dt>
+                <dt>
+                    ice:
+                    <code>{iceConnectionState}</code>
+                </dt>
+            </dl>
 
             {#if !hideDetails}
-            <small>{events.join(',')}</small>
+                <small>{events.join(',')}</small>
             {/if}
 
             <fieldset>
                 <span>
-                    <label> <input type="checkbox" bind:checked={isCaller} /> caller </label>
-                    <label> <input type="checkbox" bind:checked={isReceiver} /> receiver </label>
+                    <label>
+                        <input type="checkbox" bind:checked={isCaller} />
+                        caller
+                    </label>
+                    <label>
+                        <input type="checkbox" bind:checked={isReceiver} />
+                        receiver
+                    </label>
                 </span>
             </fieldset>
 
             {#if isCaller}
-                <label> 1. <button on:click={createOffer}>create offer</button> </label>
+                <label>
+                    1.
+                    <button on:click={createOffer}>create offer</button>
+                </label>
 
                 {#if localOfferSdp}
                     <div>
@@ -319,7 +321,8 @@
                         <textarea class:hideDetails cols="60" rows="20" bind:value={receivedAnswer} />
                         <br />
                         <label>
-                            5. <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
+                            5.
+                            <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
                         </label>
                     </div>
                 {/if}
@@ -329,7 +332,8 @@
                         <textarea cols="60" rows="20" bind:value={injectedAnswer} />
                         <br />
                         <label>
-                            5. <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
+                            5.
+                            <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
                         </label>
                     </div>
                 {/if}
@@ -361,7 +365,7 @@
                 {/if}
                 {#if localAnswerSdp && receivedOffer}
                     <div>
-                        <textarea class:hideDetails  cols="60" rows="20" bind:value={localAnswerSdp} />
+                        <textarea class:hideDetails cols="60" rows="20" bind:value={localAnswerSdp} />
                         <br />
                         <label>
                             4.

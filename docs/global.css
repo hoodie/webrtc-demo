@@ -59,3 +59,13 @@ button:active {
 button:focus {
 	border-color: #666;
 }
+
+
+video {
+	background-color: black;
+	padding: 0.5em;
+	border: 1px solid #aaa;
+	border-radius: 2px;
+	box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+	margin: 0 0 1em 0;
+}

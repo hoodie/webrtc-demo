@@ -1,9 +1,12 @@
 <script>
+    import Details from './Details.svelte';
     import { onMount, createEventDispatcher } from 'svelte';
     const dispatch = createEventDispatcher();
 
     let upstreamSource = getWebcamFeed;
     let upstreamVideo;
+    let upstreamStream;
+    $: mainTrack = upstreamStream && upstreamStream.getTracks()[0];
 
     async function getWebcamFeed() {
         return await navigator.mediaDevices.getUserMedia({ video: true });
@@ -27,6 +30,7 @@
     async function startUpstream() {
         const stream = await upstreamSource();
         console.debug({ stream });
+        upstreamStream = stream;
         upstreamVideo.srcObject = stream;
         dispatch('stream', stream);
     }
@@ -49,7 +53,7 @@
 </style>
 
 <label for="upstream">upstream</label>
-<video id="upstream" bind:this={upstreamVideo} autoplay="true" width="400" height="300" >
+<video id="upstream" bind:this={upstreamVideo} autoplay="true" width="400" height="300">
     <track kind="captions" />
 </video>
 <nav>
@@ -66,5 +70,9 @@
             noise
         </label>
     </span>
-
 </nav>
+
+{#if mainTrack}
+    <Details summary="settings" data={mainTrack.getSettings()} />
+    <Details summary="constraints" data={mainTrack.getConstraints()} />
+{/if}
