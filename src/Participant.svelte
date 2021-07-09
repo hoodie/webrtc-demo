@@ -16,6 +16,7 @@
     import Upstream from './Upstream.svelte';
     import Downstream from './Downstream.svelte';
     import RemoteBar from './RemoteBar.svelte';
+    import Transceivers from './Transceivers.svelte';
 
     export let isCaller = false;
     export let isReceiver = false;
@@ -271,6 +272,8 @@
                 <Downstream bind:this={downstreamComponent} />
             </div>
         {/if}
+
+        <Transceivers name={name} peerconnection={peerConnection}/>
 
         <div id="signaling">
             <dl>
