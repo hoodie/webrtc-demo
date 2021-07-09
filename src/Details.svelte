@@ -10,7 +10,7 @@
     }
 </style>
 
-<details {open}>
+<details open={Boolean(data) && open}>
     <summary>{summary}</summary>
     <pre>
         <code>{JSON.stringify(data, null, 4)}</code>

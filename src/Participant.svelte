@@ -38,6 +38,7 @@
 
     let peerConnection;
     let sender;
+    let videoUpstream;
 
     let signalingState = '';
     let connectionState = '';
@@ -263,7 +264,9 @@
 
         {#if $config.hasUpstream}
             <div id="upstream">
-                <Upstream on:stream={({ detail: stream }) => addStream(stream)} />
+                <Upstream on:stream={({ detail: stream }) => videoUpstream = stream} />
+                <button on:click={() => addStream(videoUpstream)}>
+                    {#if sender}replaceTrack{:else}addStream{/if}</button>
             </div>
         {/if}
 
@@ -292,7 +295,7 @@
             </dl>
 
             {#if !hideSignaling}
-                <small>{events.join(',')}</small>
+                <small>{events.join(' ')}</small>
             {/if}
 
             <fieldset>

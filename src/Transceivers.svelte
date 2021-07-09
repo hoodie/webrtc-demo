@@ -36,7 +36,6 @@
                                     csrcs: receiver.getContributingSources(),
                                     ssrcs: receiver.getSynchronizationSources()
                                 }
-                                console.debug({name, receiverDetails})
                             }
                             return {
                                 mid, direction, currentDirection,
@@ -69,12 +68,13 @@
 </style>
 
 <div id="box">
-    <h5>transceivers</h5>
+    <h5>transceivers of {name}</h5>
 {#if transceiverDetails}
     {#each transceiverDetails as transceiverDetail}
         <Details
-            summary={`transceiver ${transceiverDetail.mid}`}
+            summary={`transceiver ${transceiverDetail.mid} (of ${transceivers.length})`}
             data={transceiverDetail}
+            open={false}
             />
     {/each}
 {/if}

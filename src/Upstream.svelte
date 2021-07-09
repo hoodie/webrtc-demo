@@ -3,16 +3,24 @@
     import { onMount, createEventDispatcher } from 'svelte';
     const dispatch = createEventDispatcher();
 
-    let upstreamSource = getWebcamFeed;
     let upstreamVideo;
     let upstreamStream;
     $: mainTrack = upstreamStream && upstreamStream.getTracks()[0];
+    $: upstreamName = upstreamStream && upstreamStream.constructor.name
+    $: hasStream = Boolean(upstreamStream);
+    let videoDevices = [];
+    let selectedVideoDevice;
 
-    async function getWebcamFeed() {
-        return await navigator.mediaDevices.getUserMedia({ video: true });
+    async function getWebcamFeed(deviceId = selectedVideoDevice) {
+        const constraint = {
+                video: deviceId ? {deviceId} : true
+            };
+        return await navigator
+            .mediaDevices
+            .getUserMedia(constraint);
     }
 
-    function getNoiseFeed() {
+    function makeNoise() {
         let canvas = Object.assign(document.createElement('canvas'), { width: 400, height: 300 });
         let ctx = canvas.getContext('2d');
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -27,15 +35,39 @@
         return canvas.captureStream(60);
     }
 
-    async function startUpstream() {
-        const stream = await upstreamSource();
-        console.debug({ stream });
+    async function getNoise(deviceId) {
+        stopUpstream()
+        const stream = await makeNoise()
         upstreamStream = stream;
         upstreamVideo.srcObject = stream;
         dispatch('stream', stream);
     }
 
-    onMount(() => {});
+    async function getWebcam(deviceId) {
+        stopUpstream()
+        const stream = await getWebcamFeed(deviceId)
+        upstreamStream = stream;
+        upstreamVideo.srcObject = stream;
+        dispatch('stream', stream);
+    }
+
+    function stopUpstream() {
+        upstreamStream && upstreamStream.getTracks().forEach((track) => track.stop())
+        upstreamStream = undefined
+    }
+    async function getVideoDevices() {
+        const devices = await navigator
+            .mediaDevices
+            .enumerateDevices()
+            videoDevices = devices.filter(({kind}) => kind === 'videoinput')
+    }
+
+    onMount(() => {
+        getVideoDevices();
+        navigator.mediaDevices.addEventListener('devicechange', (deviceChange) => {
+            navigator.mediaDevices.enumerateDevices().then(devices => getVideoDevices())
+        })
+    });
 </script>
 
 <style>
@@ -48,7 +80,10 @@
         background-color: black;
     }
     nav {
-        display: flex;
+        display: block;
+    }
+    button {
+        font-size: small;
     }
 </style>
 
@@ -58,21 +93,21 @@
 </video>
 <nav>
 
-    <button on:click={startUpstream}>start upstream</button>
-    <span>
-        <label>
-            <input type="radio" bind:group={upstreamSource} value={getWebcamFeed} />
-            webcam
-        </label>
+    <button on:click={getWebcam} disabled={hasStream}>default</button>
+    <button on:click={getNoise} disabled={hasStream}>noise</button>
+    <button on:click={stopUpstream} disabled={!hasStream}>stop</button>
+    <br>
+    {#each videoDevices as device, index}
+    <button on:click={() => getWebcam(device.deviceId)}>{device.label || `camera ${index}`}</button>
+    {/each}
 
-        <label>
-            <input type="radio" bind:group={upstreamSource} value={getNoiseFeed} />
-            noise
-        </label>
-    </span>
 </nav>
 
 {#if mainTrack}
+<details>
+    <summary> {upstreamName} </summary>
+
     <Details summary="settings" data={mainTrack.getSettings()} />
     <Details summary="constraints" data={mainTrack.getConstraints()} />
+</details>
 {/if}
