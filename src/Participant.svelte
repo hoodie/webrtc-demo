@@ -60,9 +60,10 @@
     $: parsedInjectedCandidates = safeParse(injectedCandidates);
 
     let pcconfig = (() =>
-        new URL(document.location).searchParams.get('semantic') === 'unified-plan'
-            ? { sdpSemantics: 'unified-plan' }
-            : { sdpSemantics: 'plan-b' })();
+        new URL(document.location).searchParams.get('semantic') === 'plan-b'
+            ? { sdpSemantics: 'plan-b' }
+            : { sdpSemantics: 'unified-plan' }
+            )();
 
     function initPeerConnection() {
         pcconfig.sdpSemantics === 'unified-plan';
@@ -111,6 +112,12 @@
         console.info(`setup RTCPeerConnection for ${name}`, pcconfig, pc);
         return pc;
     }
+
+    function addTrack(stream) {
+        addEvent('at', 'add track');
+        console.info('add track');
+        sender = peerConnection.addTrack(stream.getTracks()[0], stream);
+}
 
     function addStream(stream) {
         if (sender) {
@@ -253,9 +260,10 @@
 
         {#if $config.hasUpstream}
             <div id="upstream" class="box">
-                <Upstream on:stream={({ detail: stream }) => videoUpstream = stream} />
-                <button on:click={() => addStream(videoUpstream)}>
-                    {#if sender}replaceTrack{:else}addStream{/if}</button>
+                <Upstream
+                    on:stream={({ detail: stream }) => videoUpstream = stream}
+                    on:stop={({ detail: stream }) => videoUpstream = undefined}
+                />
             </div>
         {/if}
 
@@ -265,7 +273,15 @@
             </div>
         {/if}
 
-        <Transceivers name={name} peerconnection={peerConnection}/>
+        <div class="box">
+            <h5>Streams</h5>
+            {#if videoUpstream} 
+                <button on:click={() => addStream(videoUpstream)}>
+                    {#if sender}replaceTrack{:else}addStream{/if}
+                </button>
+            {/if} 
+            <Transceivers name={name} peerconnection={peerConnection}/>
+        </div>
 
         <div id="signaling" class="box">
             <dl>

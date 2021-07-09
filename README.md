@@ -38,8 +38,9 @@ https://localhost:8080/?manual=false&remote=true&role=recv&stream=both
 You can configure evreything via queryString as described aboth or open the `Config` panel at the top, but all it does is set the queryStrings.
 
 
- feature | possible values          | description
- ------- | --------------           | -----------
-`remote` | `true` , `false`         | use signaling server over webSocket
-`role`   | `send` , `recv` , `both` | show 👈, 👉  or 👈 👉
-`manual` | `true` , `false`         | allow modifying the SDPs
+ feature   | possible values           | description
+ --------- | ------------------------- | -----------
+`remote`   | `true` , `false`          | use signaling server over webSocket
+`role`     | `send` , `recv` , `both`  | show 👈, 👉  or 👈 👉
+`manual`   | `true` , `false`          | allow modifying the SDPs
+`semantic` | `plan-b` , `unified-plan` | configure peerconnection

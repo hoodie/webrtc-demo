@@ -54,16 +54,14 @@
 	});
 </script>
 
-<div class="box">
     <h5>transceivers of {name}</h5>
 {#if transceiverDetails}
     {#each transceiverDetails as transceiverDetail}
+        {`transceiver ${transceiverDetail.mid}`}
         <Details
-            summary={`transceiver ${transceiverDetail.mid} (of ${transceivers.length})`}
+            summary='details'
             data={transceiverDetail}
             open={false}
             />
     {/each}
 {/if}
-
-</div>
