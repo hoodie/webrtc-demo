@@ -227,17 +227,6 @@
         flex-wrap: wrap;
     }
 
-    #upstream,
-    #downstream,
-    #signaling {
-        width: 450px;
-        display: block;
-        padding: 0.5em;
-        margin: 0 1em 1em 0;
-        border: 1px solid #aaa;
-        border-radius: 2px;
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-    }
     textarea {
         font-size: 0.7em;
         font-family: monospace;
@@ -263,7 +252,7 @@
     <div id="streams">
 
         {#if $config.hasUpstream}
-            <div id="upstream">
+            <div id="upstream" class="box">
                 <Upstream on:stream={({ detail: stream }) => videoUpstream = stream} />
                 <button on:click={() => addStream(videoUpstream)}>
                     {#if sender}replaceTrack{:else}addStream{/if}</button>
@@ -271,14 +260,14 @@
         {/if}
 
         {#if $config.hasDownstream}
-            <div id="downstream">
+            <div id="downstream" class="box">
                 <Downstream bind:this={downstreamComponent} />
             </div>
         {/if}
 
         <Transceivers name={name} peerconnection={peerConnection}/>
 
-        <div id="signaling">
+        <div id="signaling" class="box">
             <dl>
                 <dt>
                     signaling:

@@ -54,20 +54,7 @@
 	});
 </script>
 
-<style>
-
-    #box{
-        width: 450px;
-        display: block;
-        padding: 0em 0.5em;
-        margin: 0 1em 1em 0;
-        border: 1px solid #aaa;
-        border-radius: 2px;
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-    }
-</style>
-
-<div id="box">
+<div class="box">
     <h5>transceivers of {name}</h5>
 {#if transceiverDetails}
     {#each transceiverDetails as transceiverDetail}
