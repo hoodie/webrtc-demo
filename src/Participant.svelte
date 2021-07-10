@@ -230,7 +230,7 @@
         padding: 1em;
         font-size: 0.7em;
         font-family: monospace;
-        width: 100%;
+        min-width: calc(100% - 1em);
         resize: vertical;
         box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.1);
     }
@@ -324,7 +324,7 @@
 
             {#if localOfferSdp}
                 <div>
-                    <textarea class:hideSignaling cols="60" rows="20" bind:value={localOfferSdp} />
+                    <textarea class:hideSignaling rows=20 bind:value={localOfferSdp} />
                     <br />
                     <label>
                         2.
@@ -335,7 +335,7 @@
             {/if}
             {#if receivedAnswer && !$config.isManual}
                 <div>
-                    <textarea class:hideSignaling cols="60" rows="20" bind:value={receivedAnswer} />
+                    <textarea class:hideSignaling rows="20" bind:value={receivedAnswer} />
                     <br />
                     <label>
                         5.
@@ -346,7 +346,7 @@
             {#if $config.isManual}
                 <div>
                     <strong>MANUAL ANSWER HERE</strong>
-                    <textarea cols="60" rows="20" bind:value={injectedAnswer} />
+                    <textarea rows="20" bind:value={injectedAnswer} />
                     <br />
                     <label>
                         5.
@@ -359,7 +359,7 @@
         {#if isReceiver}
             {#if receivedOffer && !$config.isManual}
                 <div>
-                    <textarea class:hideSignaling cols="60" rows="20" bind:value={receivedOffer} />
+                    <textarea class:hideSignaling rows="20" bind:value={receivedOffer} />
                     <br />
                     <label>
                         3.
@@ -371,7 +371,7 @@
             {#if $config.isManual}
                 <div>
                     <strong>MANUAL OFFER HERE</strong>
-                    <textarea cols="60" rows="20" bind:value={injectedOffer} />
+                    <textarea rows="20" bind:value={injectedOffer} />
                     <br />
                     <label>
                         3.
@@ -382,7 +382,7 @@
             {/if}
             {#if localAnswerSdp && receivedOffer}
                 <div>
-                    <textarea class:hideSignaling cols="60" rows="20" bind:value={localAnswerSdp} />
+                    <textarea class:hideSignaling rows="20" bind:value={localAnswerSdp} />
                     <br />
                     <label>
                         4.
@@ -394,12 +394,12 @@
         {/if}
 
         {#if readableCandidates.length || $config.isManual}
-            <textarea class:hideSignaling cols="60" rows="10" bind:value={readableCandidates} />
+            <textarea class:hideSignaling rows="10" bind:value={readableCandidates} />
         {/if}
 
         {#if $config.isManual}
             <label for="injectedCandidates">injected Candidates</label>
-            <textarea name="injectedCandidates" cols="60" rows="20" bind:value={injectedCandidates} />
+            <textarea name="injectedCandidates" rows="20" bind:value={injectedCandidates} />
             <pre>{JSON.stringify(parsedInjectedCandidates, null, 4)}</pre>
         {/if}
 
