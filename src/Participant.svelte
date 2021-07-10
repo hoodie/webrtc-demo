@@ -13,7 +13,7 @@
     import { SignalingClient } from './signalingClient.js';
     import { justTheSdp, safeParse, packOffer, packAnswer } from './util.js';
 
-    import Upstream from './Upstream.svelte';
+    import UpstreamVideo from './UpstreamVideo.svelte';
     import Downstream from './Downstream.svelte';
     import RemoteBar from './RemoteBar.svelte';
     import Transceivers from './Transceivers.svelte';
@@ -251,7 +251,7 @@
 
     {#if $config.hasUpstream}
     <article id="upstream" class="box">
-        <Upstream
+        <UpstreamVideo
             on:stream={({ detail: stream }) => videoUpstream = stream}
             on:stop={() => videoUpstream = undefined}
         />

@@ -8,7 +8,7 @@ const boolify = value => {
     try {
         const parsed = JSON.parse(value);
         return parsed === true;
-    } catch {return false}
+    } catch { return false }
 };
 
 const queryStringify = (entries) => {
@@ -19,20 +19,22 @@ const queryStringify = (entries) => {
     return params.toString();
 }
 
-export const query = writable(
-(() => {
-        const queryEntries = Object.fromEntries(new URLSearchParams(location.search).entries())
-        const filledQuery = {
-            role: queryEntries.role || 'both',
-            stream: queryEntries.stream || 'both',
-            manual: boolify(queryEntries.manual),
-            remote: boolify(queryEntries.remote),
-            hideSignaling: boolify(queryEntries.hideSignaling),
-        };
+const readConfigFromQuery = () => {
+    const queryEntries = Object.fromEntries(new URLSearchParams(location.search).entries())
+    const filledQuery = {
+        role: queryEntries.role || 'both',
+        stream: queryEntries.stream || 'both',
+        audioVisOnly: boolify(queryEntries.audioVisOnly),
+        manual: boolify(queryEntries.manual),
+        remote: boolify(queryEntries.remote),
+        hideSignaling: boolify(queryEntries.hideSignaling),
+    };
 
-        return Object.entries(filledQuery).map(([key, value]) => ({ key, value }))
-    })()
-);
+    return Object.entries(filledQuery).map(([key, value]) => ({ key, value }))
+};
+
+
+export const query = writable(readConfigFromQuery());
 
 export const configUrl = derived(query, $query =>
     `${window.location.protocol}//${window.location.host}/?${queryStringify($query.map(({ key, value }) => [key, value]))}`
@@ -56,7 +58,7 @@ export const config = derived(
 
         return ({
             ...config,
-            role, stream, manual, remote, 
+            role, stream, manual, remote,
             hasCaller, hasReceiver, hasUpstream, hasDownstream,
             isManual, isRemote,
             hideSignaling,
