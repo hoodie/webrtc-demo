@@ -1,108 +1,69 @@
-<script>
+<script lang="ts">
     import { onMount, createEventDispatcher } from 'svelte';
+    import { renderWaveForm } from './visualizers';
     const dispatch = createEventDispatcher();
 
-    let upstreamAudio;
-    let upstreamStream;
-    let audioDevices = [];
-    let isDrawing = false;
+    let upstreamAudio: HTMLAudioElement;
+    let audioDevices: Array<MediaDeviceInfo> = [];
 
-    let canvas;
-    let canvasCtx;
-    let audioCtx;
-    let analyser;
-    let bufferLength;
-    let dataArray;
+    let canvas: HTMLCanvasElement;
+    let audioCtx: AudioContext;
+    let analyser: AnalyserNode;
+    let renderer: ReturnType<typeof renderWaveForm>;
+    let currentSource: MediaStreamAudioSourceNode
 
-    async function getAudioDevices() {
+    function initAnalyzer(): void {
+        if (audioCtx) return;
+        audioCtx = new AudioContext();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+    }
+
+    function initRenderer(): void {
+        renderer = renderWaveForm({ analyser, canvas });
+    }
+
+    async function getAudioDevices(): Promise<void> {
         const devices = await navigator.mediaDevices.enumerateDevices();
         audioDevices = devices.filter(({ kind }) => kind === 'audioinput');
     }
 
-    async function getMicStream(deviceId) {
+    async function getMicStream(deviceId: string) {
         const constraint = {
             audio: deviceId ? { deviceId } : true,
         };
         return await navigator.mediaDevices.getUserMedia(constraint);
     }
 
-    function getDeviceLabel(id) {
+    function getDeviceLabel(id: string) {
         const device = id && audioDevices.find(({ deviceId }) => deviceId === id);
         return device && device.label;
     }
 
-    async function getAudioStream(deviceId) {
+    async function getAudioStream(deviceId: string) {
         const stream = await getMicStream(deviceId);
-        stream.name = getDeviceLabel(deviceId);
+        stream['name'] = getDeviceLabel(deviceId);
         makeMainStream(stream);
     }
 
-    function makeMainStream(stream) {
-        upstreamStream = stream;
+    function makeMainStream(stream: MediaStream) {
         upstreamAudio.srcObject = stream;
+        pluginStream(stream);
         dispatch('stream', stream);
     }
 
-    function initAnalyzer() {
-        if (audioCtx) return;
-        audioCtx = new AudioContext();
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 2048;
-        bufferLength = analyser.frequencyBinCount;
-        dataArray = new Uint8Array(bufferLength);
+    function disconnectStream() {
+        console.debug('disconnecting', currentSource)
+        currentSource?.disconnect(analyser);
+        currentSource = undefined
     }
+    
+    function pluginStream(stream: MediaStream) {
+        disconnectStream()
 
-    function pluginStream(stream) {
         const source = audioCtx.createMediaStreamSource(stream);
         source.connect(analyser);
-    }
-
-    function startDrawing() {
-        if (isDrawing) return
-        isDrawing = true;
-        requestAnimationFrame(draw);
-    };
-
-    function stopDrawing() {
-        isDrawing = false;
-        requestAnimationFrame(draw);
-    };
-
-    function draw() {
-        if (isDrawing) {
-            requestAnimationFrame(draw);
-        }
-
-        analyser.getByteTimeDomainData(dataArray);
-
-        analyser.getByteTimeDomainData(dataArray);
-
-        canvasCtx.fillStyle = 'rgb(200, 200, 200)';
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-        canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-
-        canvasCtx.beginPath();
-
-        let sliceWidth = (canvas.width * 1.0) / bufferLength;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            const v = dataArray[i] / 128.0;
-            const y = (v * canvas.height) / 2;
-
-            if (i === 0) {
-                canvasCtx.moveTo(x, y);
-            } else {
-                canvasCtx.lineTo(x, y);
-            }
-
-            x += sliceWidth;
-        }
-
-        canvasCtx.lineTo(canvas.width, canvas.height / 2);
-        canvasCtx.stroke();
+        currentSource = source
     }
 
     onMount(() => {
@@ -110,17 +71,28 @@
         const keepUpdatingDevices = () => getAudioDevices();
         navigator.mediaDevices.addEventListener('devicechange', keepUpdatingDevices);
 
-        canvasCtx = canvas.getContext('2d');
         initAnalyzer();
+        initRenderer();
+        renderer.start()
+
         return () => {
             navigator.mediaDevices.removeEventListener('devicechange', keepUpdatingDevices);
-        }
+        };
     });
 </script>
+<style>
+    nav {
+        display: block;
+    }
+    button {
+        font-size: small;
+    }
+</style>
+
 
 <h5>audio devices</h5>
 
-<audio id="upstream" bind:this={upstreamAudio} autoplay="false" controls="true">
+<audio id="upstream" bind:this={upstreamAudio} autoplay={false} controls={true}>
     <track kind="captions" />
 </audio>
 
@@ -130,10 +102,6 @@
             {device.label || `micorophone ${index}`}
         </button>
     {/each}
-    <hr />
-    <button on:click={() => pluginStream(upstreamStream)}> pluginStream </button>
-    <button on:click={() => startDrawing()}> start drawing </button>
-    <button on:click={() => stopDrawing()}> stop drawing </button>
 </nav>
 
 <canvas bind:this={canvas} />

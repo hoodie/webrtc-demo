@@ -34,9 +34,9 @@
     let downstreamComponent;
     $: events = $eventLogByName[name] || [];
 
-    let peerConnection;
-    let sender;
-    let videoUpstream;
+    let peerConnection: RTCPeerConnection;
+    let sender: RTCRtpSender;
+    let videoUpstream: MediaStream;
 
     let signalingState = '';
     let connectionState = '';
