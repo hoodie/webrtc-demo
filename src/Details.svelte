@@ -1,14 +1,8 @@
-<script>
+<script lang="ts">
     export let open = true;
     export let summary = '???';
-    export let data;
+    export let data: any;
 </script>
-
-<style>
-    code {
-        color: #900;
-    }
-</style>
 
 <details open={Boolean(data) && open}>
     <summary>{summary}</summary>

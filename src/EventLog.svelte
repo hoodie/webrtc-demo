@@ -1,5 +1,5 @@
-<script>
-    import { eventLog } from './store.js';
+<script lang="ts">
+    import { eventLog } from './store';
 </script>
 
 <style>

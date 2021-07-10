@@ -1,8 +1,8 @@
-import { writable } from 'svelte/store';
+import { writable, Writable } from 'svelte/store';
 
 export const offerStore = writable({/*[from]: {type: 'offer', sdp: string}*/});
 export const answerStore = writable({/*[from]: {type: 'answer', sdp: string}*/});
-export const candidatesStore = writable({/*[from]: [Candidate]*/});
+export const candidatesStore: Writable<Record<string, any>> = writable({/*[from]: [Candidate]*/});
 
 export function sendOfferFrom({from, offer}) {
     offerStore.update(

@@ -4,6 +4,8 @@
     "exclude": ["node_modules/*", "__sapper__/*", "static/*"],
     "compilerOptions": {
         // ... Omitted...
+        "lib": ["ESNext", "DOM", "DOM.Iterable"],
+        "target": "ESnext",
     
         "types": ["svelte"]
       }

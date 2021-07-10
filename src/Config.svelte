@@ -1,10 +1,5 @@
-<style>
-    code {
-        color: red;
-    }
-</style>
 <script>
-    import { query, configUrl } from './store.js';
+    import { query, configUrl } from './store';
 
 </script>
 

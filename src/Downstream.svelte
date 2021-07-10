@@ -1,8 +1,8 @@
-<script>
+<script lang="ts">
     import Details from './Details.svelte';
-    export let stream;
+    export let stream: MediaStream | undefined;
 
-    let videoTag;
+    let videoTag: HTMLVideoElement;
     $: mainTrack = stream && stream.getTracks()[0];
 
     $: {
@@ -16,7 +16,7 @@
 
 <h5>downstream</h5>
 
-<video bind:this={videoTag} autoplay="true">
+<video bind:this={videoTag} autoplay={true}>
     <track kind="captions" />
 </video>
 

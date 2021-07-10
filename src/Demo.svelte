@@ -1,5 +1,5 @@
 <script>
-    import { config } from './store.js';
+    import { config } from './store';
 
     import Config from './Config.svelte';
     import Participant from './Participant.svelte';

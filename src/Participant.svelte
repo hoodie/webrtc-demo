@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
     import { onMount } from 'svelte';
-    import { config, addEventFor, eventLogByName } from './store.js';
+    import { config, addEventFor, eventLogByName } from './store';
     import {
         offerStore,
         answerStore,
@@ -9,8 +9,8 @@
         sendAnswerFrom,
         sendCandidateFrom,
         clearCandidatesFrom,
-    } from './signalingStore.js';
-    import { SignalingClient } from './signalingClient.js';
+    } from './signalingStore';
+    import { SignalingClient } from './signalingClient';
     import { justTheSdp, safeParse, packOffer, packAnswer } from './util.js';
 
     import UpstreamVideo from './UpstreamVideo.svelte';
@@ -22,7 +22,7 @@
     export let isReceiver = false;
 
     export let name = 'unnamed participant';
-    export let recipient = null;
+    export let recipient: string | null = null;
 
     const signalingClient = new SignalingClient({
         from: name,
@@ -58,7 +58,7 @@
     $: parsedInjectedCandidates = safeParse(injectedCandidates);
 
     let pcconfig = (() =>
-        new URL(document.location).searchParams.get('semantic') === 'plan-b'
+        new URL(document.location.toString()).searchParams.get('semantic') === 'plan-b'
             ? { sdpSemantics: 'plan-b' }
             : { sdpSemantics: 'unified-plan' }
             )();
@@ -66,7 +66,7 @@
     function initPeerConnection() {
         pcconfig.sdpSemantics === 'unified-plan';
 
-        const pc = new RTCPeerConnection(pcconfig);
+        const pc = new RTCPeerConnection(pcconfig as any);
         pc.ontrack = event => {
             const { track, streams, transceiver } = event;
             const stream = streams[0];
@@ -161,10 +161,10 @@
         addEvent('l', 'setLocalDescription');
         console.debug('localDescription ->', localOfferSdp);
         const sessionDesc = localOfferSdp;
-        clearCandidatesFrom(name);
+        clearCandidatesFrom({from: name});
         peerConnection.setLocalDescription(sessionDesc); //
         applyCandidates();
-        clearCandidatesFrom(recipient);
+        clearCandidatesFrom({from :recipient});
     }
 
     function applyRemoteOffer(receivedOffer) {
@@ -172,7 +172,7 @@
         const sessionDesc = packOffer(receivedOffer);
         peerConnection.setRemoteDescription(sessionDesc);
         applyCandidates();
-        clearCandidatesFrom(recipient);
+        clearCandidatesFrom({from:recipient});
     }
 
     function applyCandidates() {
@@ -198,7 +198,7 @@
         addEvent('r', 'setRemoteDescription');
         const sessionDesc = packAnswer(receivedOffer);
         peerConnection.setRemoteDescription(sessionDesc);
-        clearCandidatesFrom(name);
+        clearCandidatesFrom({from: name});
     }
 
     $: hideSignaling = $config.hideSignaling;
@@ -252,7 +252,7 @@
 
     {#if $config.hasDownstream}
     <article id="downstream" class="box">
-        <Downstream bind:this={downstreamComponent} />
+        <Downstream bind:this={downstreamComponent} stream={undefined} />
     </article>
     {/if}
 
@@ -265,7 +265,7 @@
     </article>
 
     <article class="box">
-        <Transceivers name={name} peerconnection={peerConnection}/>
+        <Transceivers peerconnection={peerConnection}/>
     </article>
 
     <article class="box">

@@ -1,16 +1,18 @@
 import {
     offerStore, answerStore, candidatesStore,
     sendOfferFrom, sendAnswerFrom, sendCandidateFrom, clearCandidatesFrom
-} from './signalingStore.js';
+} from './signalingStore';
 
 export class SignalingClient {
+    private to: string;
+    private from: string;
+    private socket: WebSocket;
     constructor({to, from}) {
         this.to = to;
         this.from = from;
     }
 
     connect({url}) {
-        this.url = url;
         const socket = new WebSocket(url);
         socket.onopen = () => {
             this.socket = socket;
