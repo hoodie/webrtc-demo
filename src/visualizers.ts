@@ -8,6 +8,66 @@ interface RenderWaveFormConfig {
     canvas: HTMLCanvasElement;
 }
 
+export function renderVolume({ analyser, canvas }: RenderWaveFormConfig): AnalyserRenderer {
+    console.log('creating renderer', { analyser, canvas });
+    const ctx = canvas.getContext('2d');
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    let animationHandle: number;
+
+    function draw() {
+        analyser.getByteTimeDomainData(dataArray);
+
+        // clear
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.font = '15px sans-serif';
+        ctx.strokeStyle = 'rgb(255, 255, 255)'
+
+        let maxValue = 0;
+
+        ctx.lineWidth = 5;
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * canvas.height)/ 2;
+            if (y > maxValue) {
+                maxValue = y
+            }
+        }
+
+        let volume = (maxValue - 75)*2;
+        let amplitudePoint = canvas.height - volume
+
+        ctx.beginPath();
+        ctx.moveTo(0, amplitudePoint);
+        ctx.lineTo(canvas.width, amplitudePoint);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgb(100,255,100)';
+        ctx.fillRect(0, canvas.height, canvas.width, -canvas.height+amplitudePoint);
+
+        ctx.fillStyle = 'rgb(0,0,0)'
+        ctx.fillText(String(volume), canvas.width-40, canvas.height-10)
+
+
+        animationHandle = requestAnimationFrame(draw);
+    }
+
+    return {
+        start() {
+            if (typeof animationHandle == 'undefined') {
+                draw()
+            }
+        },
+        stop() {
+            cancelAnimationFrame(animationHandle);
+            animationHandle = undefined;
+        },
+    };
+}
+
 // thanks to https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode
 export function renderWaveForm({ analyser, canvas }: RenderWaveFormConfig): AnalyserRenderer {
     console.log('creating renderer', { analyser, canvas });
@@ -55,7 +115,6 @@ export function renderWaveForm({ analyser, canvas }: RenderWaveFormConfig): Anal
             if (typeof animationHandle == 'undefined') {
                 draw()
             }
-
         },
         stop() {
             cancelAnimationFrame(animationHandle);

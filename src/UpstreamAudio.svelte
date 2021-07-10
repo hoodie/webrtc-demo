@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, createEventDispatcher } from 'svelte';
-    import { renderWaveForm } from './visualizers';
+    import { renderVolume, renderWaveForm } from './visualizers';
     const dispatch = createEventDispatcher();
 
     let upstreamAudio: HTMLAudioElement;
@@ -22,7 +22,19 @@
     }
 
     function initRenderer(): void {
+        if (renderer) {
+            renderer.stop();
+        }
         renderer = renderWaveForm({ analyser, canvas });
+        renderer.start();
+    }
+
+    function initRendererVolume(): void {
+        if (renderer) {
+            renderer.stop();
+        }
+        renderer = renderVolume({ analyser, canvas });
+        renderer.start();
     }
 
     async function getAudioDevices(): Promise<void> {
@@ -46,7 +58,7 @@
         const stream = await getMicStream(deviceId);
         stream['name'] = getDeviceLabel(deviceId);
         makeMainStream(stream);
-        audioStreams = [...audioStreams, stream]
+        audioStreams = [...audioStreams, stream];
     }
 
     function makeMainStream(stream: MediaStream) {
@@ -57,15 +69,15 @@
     }
 
     function stopStream(stream) {
-        stream.getTracks().forEach((track) => track.stop())
-        dispatch('stop', stream)
+        stream.getTracks().forEach((track) => track.stop());
+        dispatch('stop', stream);
     }
 
     function deleteStream(stream) {
-        stopStream(stream)
-        audioStreams = [...audioStreams.filter(s => s != stream)]
+        stopStream(stream);
+        audioStreams = [...audioStreams.filter((s) => s != stream)];
         if (currentActiveStream === stream) {
-            currentActiveStream = undefined
+            currentActiveStream = undefined;
         }
     }
 
@@ -89,23 +101,13 @@
         navigator.mediaDevices.addEventListener('devicechange', keepUpdatingDevices);
 
         initAnalyzer();
-        initRenderer();
-        renderer.start();
+        initRendererVolume();
 
         return () => {
             navigator.mediaDevices.removeEventListener('devicechange', keepUpdatingDevices);
         };
     });
 </script>
-
-<style>
-    nav {
-        display: block;
-    }
-    button {
-        font-size: small;
-    }
-</style>
 
 <h5>audio devices</h5>
 
@@ -120,17 +122,29 @@
     <audio id="upstream" bind:this={upstreamAudio} autoplay={false} controls={Boolean(currentActiveStream)}>
         <track kind="captions" />
     </audio>
-
 </nav>
 
+<button on:click={() => initRenderer()}>waveform</button>
+<button on:click={() => initRendererVolume()}>volume</button>
 
 <table>
-{#each audioStreams as stream}
-<tr>
-    <td>{#if currentActiveStream === stream}✔️{/if}</td>
-    <td> <button on:click={() => makeMainStream(stream)}> {stream['name']}</button></td>
-    <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
-    <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
-</tr>
-{/each}
+    {#each audioStreams as stream}
+        <tr>
+            <td
+                >{#if currentActiveStream === stream}✔️{/if}</td
+            >
+            <td> <button on:click={() => makeMainStream(stream)}> {stream['name']}</button></td>
+            <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
+            <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
+        </tr>
+    {/each}
 </table>
+
+<style>
+    nav {
+        display: block;
+    }
+    button {
+        font-size: small;
+    }
+</style>
