@@ -1,4 +1,5 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const path = require('path');
 
 const mode = process.env.NODE_ENV || 'development';
 const prod = mode === 'production';
@@ -7,40 +8,48 @@ const config = require('./config.json');
 
 module.exports = {
 	entry: {
-		bundle: ['./src/main.js']
+		'build/bundle': ['./src/main.js']
 	},
 	resolve: {
-		extensions: ['.mjs', '.js', '.svelte']
+		alias: {
+			svelte: path.dirname(require.resolve('svelte/package.json'))
+		},
+		extensions: ['.mjs', '.js', '.svelte'],
+		mainFields: ['svelte', 'browser', 'module', 'main']
 	},
 	output: {
-		path: __dirname + '/docs',
+		path: path.join(__dirname, '/docs'),
 		filename: '[name].js',
 		chunkFilename: '[name].[id].js'
 	},
 	module: {
 		rules: [
 			{
-				test: /\.(svelte|html)$/,
-				exclude: /node_modules/,
+				test: /\.svelte$/,
 				use: {
 					loader: 'svelte-loader',
 					options: {
-						emitCss: true,
-						hotReload: true,
-						dev: true,
+						emitCss: prod,
+						hotReload: !prod,
+						compilerOptions: {
+							dev: !prod
+						}
 					}
 				}
 			},
 			{
 				test: /\.css$/,
 				use: [
-					/**
-					 * MiniCssExtractPlugin doesn't support HMR.
-					 * For developing, use 'style-loader' instead.
-					 * */
-					prod ? MiniCssExtractPlugin.loader : 'style-loader',
+					MiniCssExtractPlugin.loader,
 					'css-loader'
 				]
+			},
+			{
+				// required to prevent errors from Svelte on Webpack 5+
+				test: /node_modules\/svelte\/.*\.mjs$/,
+				resolve: {
+					fullySpecified: false
+				}
 			}
 		]
 	},
@@ -50,10 +59,9 @@ module.exports = {
 			filename: '[name].css'
 		})
 	],
-	devtool: prod ? false: 'source-map',
-	
+	devtool: prod ? false : 'source-map',
 	devServer: {
-		contentBase: "docs",
+		hot: true,
 		host: '0.0.0.0' ,
 		disableHostCheck: true,
 		proxy: {
@@ -63,5 +71,5 @@ module.exports = {
 		  },
 		},
 		https: true
-	  }
+	}
 };
