@@ -4,9 +4,9 @@
     const dispatch = createEventDispatcher();
 
     let upstreamVideo;
-    let upstreamStream;
-    $: mainTrack = upstreamStream && upstreamStream.getTracks()[0];
-    $: upstreamName = upstreamStream && upstreamStream.constructor.name
+    let currentActiveStream;
+    $: mainTrack = currentActiveStream && currentActiveStream.getTracks()[0];
+    $: upstreamName = currentActiveStream && currentActiveStream.constructor.name
 
     let videoDevices = [];
     let videoStreams = [];
@@ -50,7 +50,7 @@
     }
 
     function makeMainStream(stream) {
-        upstreamStream = stream
+        currentActiveStream = stream
         upstreamVideo.srcObject = stream;
         dispatch('stream', stream)
     }
@@ -63,8 +63,8 @@
     function deleteStream(stream) {
         stopStream(stream)
         videoStreams = [...videoStreams.filter(s => s != stream)]
-        if (upstreamStream === stream) {
-            upstreamStream = undefined
+        if (currentActiveStream === stream) {
+            currentActiveStream = undefined
         }
     }
 
@@ -123,7 +123,7 @@
 <table>
 {#each videoStreams as stream}
 <tr>
-    <td>{#if upstreamStream === stream}✔️{/if}</td>
+    <td>{#if currentActiveStream === stream}✔️{/if}</td>
     <td> <button on:click={() => makeMainStream(stream)}> {stream.name}</button></td>
     <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
     <td> <button on:click={() => deleteStream(stream)}>X</button> </td>

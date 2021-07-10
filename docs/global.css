@@ -46,7 +46,7 @@ h3 small {
 	font-style: italic;
 }
 
-video {
+video, canvas {
 	padding: var(--video-padding);
 	border: 1px solid #aaa;
 	border-radius: 2px;

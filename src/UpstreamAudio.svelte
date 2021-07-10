@@ -4,13 +4,15 @@
     const dispatch = createEventDispatcher();
 
     let upstreamAudio: HTMLAudioElement;
+    let currentActiveStream: MediaStream | undefined;
     let audioDevices: Array<MediaDeviceInfo> = [];
+    let audioStreams: Array<MediaStream> = [];
 
     let canvas: HTMLCanvasElement;
     let audioCtx: AudioContext;
     let analyser: AnalyserNode;
     let renderer: ReturnType<typeof renderWaveForm>;
-    let currentSource: MediaStreamAudioSourceNode
+    let currentSource: MediaStreamAudioSourceNode;
 
     function initAnalyzer(): void {
         if (audioCtx) return;
@@ -44,26 +46,41 @@
         const stream = await getMicStream(deviceId);
         stream['name'] = getDeviceLabel(deviceId);
         makeMainStream(stream);
+        audioStreams = [...audioStreams, stream]
     }
 
     function makeMainStream(stream: MediaStream) {
+        currentActiveStream = stream;
         upstreamAudio.srcObject = stream;
         pluginStream(stream);
         dispatch('stream', stream);
     }
 
-    function disconnectStream() {
-        console.debug('disconnecting', currentSource)
-        currentSource?.disconnect(analyser);
-        currentSource = undefined
+    function stopStream(stream) {
+        stream.getTracks().forEach((track) => track.stop())
+        dispatch('stop', stream)
     }
-    
+
+    function deleteStream(stream) {
+        stopStream(stream)
+        audioStreams = [...audioStreams.filter(s => s != stream)]
+        if (currentActiveStream === stream) {
+            currentActiveStream = undefined
+        }
+    }
+
+    function disconnectStream() {
+        console.debug('disconnecting', currentSource);
+        currentSource?.disconnect(analyser);
+        currentSource = undefined;
+    }
+
     function pluginStream(stream: MediaStream) {
-        disconnectStream()
+        disconnectStream();
 
         const source = audioCtx.createMediaStreamSource(stream);
         source.connect(analyser);
-        currentSource = source
+        currentSource = source;
     }
 
     onMount(() => {
@@ -73,13 +90,14 @@
 
         initAnalyzer();
         initRenderer();
-        renderer.start()
+        renderer.start();
 
         return () => {
             navigator.mediaDevices.removeEventListener('devicechange', keepUpdatingDevices);
         };
     });
 </script>
+
 <style>
     nav {
         display: block;
@@ -89,12 +107,9 @@
     }
 </style>
 
-
 <h5>audio devices</h5>
 
-<audio id="upstream" bind:this={upstreamAudio} autoplay={false} controls={true}>
-    <track kind="captions" />
-</audio>
+<canvas bind:this={canvas} />
 
 <nav>
     {#each audioDevices as device, index}
@@ -102,6 +117,20 @@
             {device.label || `micorophone ${index}`}
         </button>
     {/each}
+    <audio id="upstream" bind:this={upstreamAudio} autoplay={false} controls={Boolean(currentActiveStream)}>
+        <track kind="captions" />
+    </audio>
+
 </nav>
 
-<canvas bind:this={canvas} />
+
+<table>
+{#each audioStreams as stream}
+<tr>
+    <td>{#if currentActiveStream === stream}✔️{/if}</td>
+    <td> <button on:click={() => makeMainStream(stream)}> {stream['name']}</button></td>
+    <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
+    <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
+</tr>
+{/each}
+</table>
