@@ -7,7 +7,7 @@
     let upstreamStream;
     $: mainTrack = upstreamStream && upstreamStream.getTracks()[0];
     $: upstreamName = upstreamStream && upstreamStream.constructor.name
-    $: hasStream = Boolean(upstreamStream);
+
     let videoDevices = [];
     let videoStreams = [];
 
@@ -55,10 +55,6 @@
         dispatch('stream', stream)
     }
 
-    function useStream(stream) {
-        dispatch('stream', stream)
-    }
-
     function stopStream(stream) {
         stream.getTracks().forEach((track) => track.stop())
         dispatch('stop', stream)
@@ -86,9 +82,11 @@
 
     onMount(() => {
         getVideoDevices();
-        navigator.mediaDevices.addEventListener('devicechange', (deviceChange) => {
-            navigator.mediaDevices.enumerateDevices().then(devices => getVideoDevices())
-        })
+        const keepUpdatingDevices = () => getVideoDevices();
+        navigator.mediaDevices.addEventListener('devicechange', keepUpdatingDevices);
+        return () => {
+            navigator.mediaDevices.removeEventListener('devicechange', keepUpdatingDevices);
+        }
     });
 </script>
 

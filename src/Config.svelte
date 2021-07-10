@@ -4,17 +4,8 @@
     }
 </style>
 <script>
-    import { query, config, configUrl, eventLog } from './store.js';
+    import { query, configUrl } from './store.js';
 
-    const boolable = value => {
-        try {
-            return JSON.parse(value) === 'boolean';
-        } catch {return false}
-    };
-
-    const checkConfig = ({target: {value, name}}) => {
-        config.update(config => ({...config, [name]: value === 'on'}));
-    }
 </script>
 
 <details>
@@ -24,7 +15,7 @@
     </pre> </code>
 
     <table>
-    {#each $query as {key, value}, i}
+    {#each $query as {key, value}}
         <tr>
             <td>{key}</td>
             <td>

@@ -1,7 +1,4 @@
 <script>
-    import { offerStore, answerStore, candidatesStore } from './signalingStore.js';
-    import { config } from './store.js';
-
     export let signalingClient;
 
     $: signalingServer = `wss://${window.location.host}/signaling/test`;

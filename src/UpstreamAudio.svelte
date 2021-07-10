@@ -107,12 +107,14 @@
 
     onMount(() => {
         getAudioDevices();
-        navigator.mediaDevices.addEventListener('devicechange', (deviceChange) => {
-            navigator.mediaDevices.enumerateDevices().then((devices) => getAudioDevices());
-        });
+        const keepUpdatingDevices = () => getAudioDevices();
+        navigator.mediaDevices.addEventListener('devicechange', keepUpdatingDevices);
 
         canvasCtx = canvas.getContext('2d');
         initAnalyzer();
+        return () => {
+            navigator.mediaDevices.removeEventListener('devicechange', keepUpdatingDevices);
+        }
     });
 </script>
 

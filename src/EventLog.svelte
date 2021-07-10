@@ -1,8 +1,7 @@
 <script>
     import { eventLog } from './store.js';
-
-    const dummyData = Array(100).fill({name: 'hendrik', event: 'fun stuff'})
 </script>
+
 <style>
     table {
         max-height: 80vh;

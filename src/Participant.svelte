@@ -1,5 +1,5 @@
 <script>
-    import { onMount, createEventDispatcher, tick } from 'svelte';
+    import { onMount } from 'svelte';
     import { config, addEventFor, eventLogByName } from './store.js';
     import {
         offerStore,
@@ -28,8 +28,6 @@
         from: name,
         to: recipient,
     });
-
-    const dispatch = createEventDispatcher();
 
     const addEvent = addEventFor(name);
 
@@ -105,18 +103,12 @@
             rawCandidates = [...rawCandidates, candidate];
             sendCandidate(candidate);
         };
-        pc.onsignalingstatechange = s => (signalingState = pc.signalingState);
-        pc.onconnectionstatechange = s => (connectionState = pc.connectionState);
-        pc.oniceconnectionstatechange = s => (iceConnectionState = pc.iceConnectionState);
+        pc.onsignalingstatechange = () => (signalingState = pc.signalingState);
+        pc.onconnectionstatechange = () => (connectionState = pc.connectionState);
+        pc.oniceconnectionstatechange = () => (iceConnectionState = pc.iceConnectionState);
 
         console.info(`setup RTCPeerConnection for ${name}`, pcconfig, pc);
         return pc;
-    }
-
-    function addTrack(stream) {
-        addEvent('at', 'add track');
-        console.info('add track');
-        sender = peerConnection.addTrack(stream.getTracks()[0], stream);
     }
 
     function addStream(stream) {
