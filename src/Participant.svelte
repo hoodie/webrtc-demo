@@ -226,25 +226,15 @@
 </script>
 
 <style>
-    code {
-        color: red;
-    }
-
-    h3 small {
-        font-weight: lighter;
-        font-size: 0.8em;
-        font-style: italic;
-    }
-
-    #streams {
-        display: flex;
-        flex-wrap: wrap;
-    }
     textarea {
+        padding: 1em;
         font-size: 0.7em;
         font-family: monospace;
         width: 100%;
+        resize: vertical;
+        box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.1);
     }
+
     .hideSignaling {
         display: none;
     }
@@ -263,7 +253,7 @@
     <article id="upstream" class="box">
         <Upstream
             on:stream={({ detail: stream }) => videoUpstream = stream}
-            on:stop={({ detail: stream }) => videoUpstream = undefined}
+            on:stop={() => videoUpstream = undefined}
         />
     </article>
     {/if}
@@ -276,11 +266,10 @@
 
     <article class="box">
         <h5>streams</h5>
-        {#if videoUpstream} 
-            <button on:click={() => addStream(videoUpstream)}>
-                {#if sender}replaceTrack{:else}addStream{/if}
-            </button>
-        {/if} 
+        <button on:click={() => addStream(videoUpstream)}
+            disabled={!Boolean(videoUpstream)}>
+            {#if sender}replaceTrack{:else}addStream{/if}
+        </button>
     </article>
 
     <article class="box">
@@ -289,27 +278,28 @@
 
     <article class="box">
         <h5>signaling</h5>
+
         <div class="box">
-        <table class="vertical">
-            <tr>
-                <th> signaling: </th>
-                <td> <code>{signalingState}</code> </td>
-            </tr>
-            <tr>
-                <th> connection: </th>
-                <td> <code>{connectionState}</code> </td>
-            </tr>
-            <tr>
-                <th> ice: </th>
-                <td> <code>{iceConnectionState}</code> </td>
-            </tr>
-            {#if !hideSignaling}
-            <tr>
-                <th> events: </th>
-                <td> <code> <small>{events.join(' ')}</small> </code> </td>
-            </tr>
-            {/if}
-        </table>
+            <table class="vertical">
+                <tr>
+                    <th> signaling: </th>
+                    <td> <code>{signalingState}</code> </td>
+                </tr>
+                <tr>
+                    <th> connection: </th>
+                    <td> <code>{connectionState}</code> </td>
+                </tr>
+                <tr>
+                    <th> ice: </th>
+                    <td> <code>{iceConnectionState}</code> </td>
+                </tr>
+                {#if !hideSignaling}
+                <tr>
+                    <th> events: </th>
+                    <td> <code> <small>{events.join(' ')}</small> </code> </td>
+                </tr>
+                {/if}
+            </table>
 
         </div>
 

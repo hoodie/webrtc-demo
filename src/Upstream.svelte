@@ -113,7 +113,12 @@
     <button on:click={() => getNoise()}>noise</button>
     <br>
     {#each videoDevices as device, index}
-    <button on:click={() => getWebcam(device.deviceId)}>{device.label || `camera ${index}`}</button>
+    <button
+        on:click={() => getWebcam(device.deviceId)}
+        class=""
+        >
+        {device.label || `camera ${index}`}
+    </button>
     {/each}
 
 </nav>

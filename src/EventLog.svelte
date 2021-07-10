@@ -1,14 +1,38 @@
 <script>
-    import { config, eventLog } from './store.js';
+    import { eventLog } from './store.js';
+
+    const dummyData = Array(100).fill({name: 'hendrik', event: 'fun stuff'})
 </script>
+<style>
+    table {
+        max-height: 80vh;
+        overflow-y: scroll;
+    }
+</style>
 
-<ol>
-    {#each $eventLog.filter(e => e.event) as { name, event }}
-        <li>{name}: {event}</li>
-    {/each}
-</ol>
+<section>
 
-<em>
-    please open
-    <code>chrome://webrtc-internals</code>
-</em>
+    <h3>Event Log <small>
+        please open
+        <code>about://webrtc-internals</code>
+    </small></h3>
+
+    <div class="box">
+
+
+
+        <table class="vertical">
+            {#each $eventLog.filter(e => e.event) as { name, event }}
+            <tr>
+                <th>{name}:</th>
+                <td><code>
+                {event}
+                </code>
+            </td>
+            </tr>
+            {/each}
+        </table>
+
+    </div>
+
+</section>

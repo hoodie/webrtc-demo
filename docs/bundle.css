@@ -1,5 +1,6 @@
 code.svelte-12ii7jf{color:red}
 code.svelte-ubxtzq{color:#900}
 nav.svelte-2jsuhx{display:block}button.svelte-2jsuhx{font-size:small}
-code.svelte-j1yyqz.svelte-j1yyqz{color:red}h3.svelte-j1yyqz small.svelte-j1yyqz{font-weight:lighter;font-size:0.8em;font-style:italic}textarea.svelte-j1yyqz.svelte-j1yyqz{font-size:0.7em;font-family:monospace;width:100%}.hideSignaling.svelte-j1yyqz.svelte-j1yyqz{display:none}
-main.svelte-n5y9mb{display:flex;grid-template-columns:1fr 1fr 1fr}div.svelte-n5y9mb{padding:1em;border:1px solid #aaa;border-radius:2px;box-shadow:2px 2px 8px rgba(0, 0, 0, 0.1);margin:0 0 1em 0}
+textarea.svelte-153zll0{padding:1em;font-size:0.7em;font-family:monospace;width:100%;resize:vertical;box-shadow:inset 2px 2px 8px rgba(0, 0, 0, 0.1)}.hideSignaling.svelte-153zll0{display:none}
+table.svelte-111zlyk{max-height:80vh;overflow-y:scroll}
+main.svelte-1mx8d2d{display:flex;grid-template-columns:1fr 1fr 1fr}div.svelte-1mx8d2d{padding:1em}

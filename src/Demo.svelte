@@ -15,18 +15,11 @@
 
     div {
         padding: 1em;
-        border: 1px solid #aaa;
-        border-radius: 2px;
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-        margin: 0 0 1em 0;
     }
 </style>
 
 <div>
-    <aside>
-        <Config />
-    </aside>
-
+    <h1>WebRTC Plumber</h1>
     <main>
 
         {#if $config.hasCaller}
@@ -38,9 +31,12 @@
         {/if}
 
         {#if !$config.hideSignaling}
-            <div>
-                <EventLog />
-            </div>
+            <EventLog />
         {/if}
     </main>
+
+    <aside>
+        <Config />
+    </aside>
+
 </div>

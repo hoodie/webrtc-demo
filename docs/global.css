@@ -21,18 +21,29 @@ main {
 	outline: 0px solid red;
 }
 
-section {
+section, aside {
 	padding: 0em 1em;
 	outline: 0px solid orange;
 }
 
-article {
-	width: 500px;
+section article {
+	width: 600px;
 	outline: 0px solid yellow;
 }
+
 article h5 {
 	margin: 0.5em 0;
 	outline: 0px dashed blue;
+}
+
+code {
+	color: red;
+}
+
+h3 small {
+	font-weight: lighter;
+	font-size: 0.8em;
+	font-style: italic;
 }
 
 video {
@@ -48,10 +59,6 @@ video {
 	display: block;
 	padding: 0em 0.5em;
 	margin: 0.6em 1em 1em 0.1em;
-	/*outline: 3px solid lime;*/
-}
-
-.box {
 	border: 1px solid #aaa;
 	border-radius: 2px;
 	box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
@@ -72,6 +79,10 @@ a:visited {
 
 label {
 	display: block;
+}
+
+textarea {
+	max-width: fit-content;
 }
 
 input, button, select, textarea {
