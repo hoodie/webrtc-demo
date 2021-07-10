@@ -5,6 +5,6 @@ const app = new App({
 	props: {}
 });
 
-window.app = app;
+window['app'] = app;
 
 export default app;
