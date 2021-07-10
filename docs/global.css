@@ -1,3 +1,8 @@
+:root{
+	--video-padding: 0.5em;
+	--video-width: calc(100% - 2 * var(--video-padding));
+}
+
 html, body {
 	position: relative;
 	width: 100%;
@@ -12,15 +17,46 @@ body {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-.box{
-	width: 450px;
+main {
+	outline: 0px solid red;
+}
+
+section {
+	padding: 0em 1em;
+	outline: 0px solid orange;
+}
+
+article {
+	width: 500px;
+	outline: 0px solid yellow;
+}
+article h5 {
+	margin: 0.5em 0;
+	outline: 0px dashed blue;
+}
+
+video {
+	padding: var(--video-padding);
+	border: 1px solid #aaa;
+	border-radius: 2px;
+	box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+	background-color: black;
+	width: var(--video-width);
+}
+
+.box {
 	display: block;
 	padding: 0em 0.5em;
-	margin: 0 1em 1em 0;
+	margin: 0.6em 1em 1em 0.1em;
+	/*outline: 3px solid lime;*/
+}
+
+.box {
 	border: 1px solid #aaa;
 	border-radius: 2px;
 	box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
+
 a {
 	color: rgb(0,100,200);
 	text-decoration: none;
@@ -69,8 +105,14 @@ button:focus {
 	border-color: #666;
 }
 
-dl {
-	font-size: 0.7em;
+table {
+	font-size: 0.8em;
+
+}
+
+table.vertical th {
+	text-align: left;
+
 }
 
 video {

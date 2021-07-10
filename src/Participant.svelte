@@ -229,181 +229,190 @@
     code {
         color: red;
     }
+
+    h3 small {
+        font-weight: lighter;
+        font-size: 0.8em;
+        font-style: italic;
+    }
+
     #streams {
         display: flex;
         flex-wrap: wrap;
     }
-
     textarea {
         font-size: 0.7em;
         font-family: monospace;
         width: 100%;
     }
-    fieldset {
-        display: flex;
-    }
-    fieldset span {
-        display: inline;
-    }
     .hideSignaling {
         display: none;
     }
+
 </style>
 
 <section>
-    <h3>{name}</h3>
+    <h3>{name}
+    <small>talking to {recipient}</small>
+    </h3>
     {#if $config.isRemote}
         <RemoteBar {signalingClient} />
     {/if}
-    <small>talking to {recipient}</small>
-    <div id="streams">
 
-        {#if $config.hasUpstream}
-            <div id="upstream" class="box">
-                <Upstream
-                    on:stream={({ detail: stream }) => videoUpstream = stream}
-                    on:stop={({ detail: stream }) => videoUpstream = undefined}
-                />
-            </div>
-        {/if}
+    {#if $config.hasUpstream}
+    <article id="upstream" class="box">
+        <Upstream
+            on:stream={({ detail: stream }) => videoUpstream = stream}
+            on:stop={({ detail: stream }) => videoUpstream = undefined}
+        />
+    </article>
+    {/if}
 
-        {#if $config.hasDownstream}
-            <div id="downstream" class="box">
-                <Downstream bind:this={downstreamComponent} />
-            </div>
-        {/if}
+    {#if $config.hasDownstream}
+    <article id="downstream" class="box">
+        <Downstream bind:this={downstreamComponent} />
+    </article>
+    {/if}
+
+    <article class="box">
+        <h5>streams</h5>
+        {#if videoUpstream} 
+            <button on:click={() => addStream(videoUpstream)}>
+                {#if sender}replaceTrack{:else}addStream{/if}
+            </button>
+        {/if} 
+    </article>
+
+    <article class="box">
+        <Transceivers name={name} peerconnection={peerConnection}/>
+    </article>
+
+    <article class="box">
+        <h5>signaling</h5>
+        <div class="box">
+        <table class="vertical">
+            <tr>
+                <th> signaling: </th>
+                <td> <code>{signalingState}</code> </td>
+            </tr>
+            <tr>
+                <th> connection: </th>
+                <td> <code>{connectionState}</code> </td>
+            </tr>
+            <tr>
+                <th> ice: </th>
+                <td> <code>{iceConnectionState}</code> </td>
+            </tr>
+            {#if !hideSignaling}
+            <tr>
+                <th> events: </th>
+                <td> <code> <small>{events.join(' ')}</small> </code> </td>
+            </tr>
+            {/if}
+        </table>
+
+        </div>
 
         <div class="box">
-            <h5>Streams</h5>
-            {#if videoUpstream} 
-                <button on:click={() => addStream(videoUpstream)}>
-                    {#if sender}replaceTrack{:else}addStream{/if}
-                </button>
-            {/if} 
-            <Transceivers name={name} peerconnection={peerConnection}/>
-        </div>
-
-        <div id="signaling" class="box">
-            <dl>
-                <dt>
-                    signaling:
-                    <code>{signalingState}</code>
-                </dt>
-                <dt>
-                    connection:
-                    <code>{connectionState}</code>
-                </dt>
-                <dt>
-                    ice:
-                    <code>{iceConnectionState}</code>
-                </dt>
-            </dl>
-
-            {#if !hideSignaling}
-                <small>{events.join(' ')}</small>
-            {/if}
-
-            <fieldset>
-                <span>
-                    <label>
-                        <input type="checkbox" bind:checked={isCaller} />
-                        caller
-                    </label>
-                    <label>
-                        <input type="checkbox" bind:checked={isReceiver} />
-                        receiver
-                    </label>
-                </span>
-            </fieldset>
-
-            {#if isCaller}
+            <span>
                 <label>
-                    1.
-                    <button on:click={createOffer}>create offer</button>
+                    <input type="checkbox" bind:checked={isCaller} />
+                    caller
                 </label>
-
-                {#if localOfferSdp}
-                    <div>
-                        <textarea class:hideSignaling cols="60" rows="20" bind:value={localOfferSdp} />
-                        <br />
-                        <label>
-                            2.
-                            <button on:click={() => applyLocal(packOffer(localOfferSdp))}>setLocalDescription</button>
-                            <button on:click={sendOffer}>send offer</button>
-                        </label>
-                    </div>
-                {/if}
-                {#if receivedAnswer && !$config.isManual}
-                    <div>
-                        <textarea class:hideSignaling cols="60" rows="20" bind:value={receivedAnswer} />
-                        <br />
-                        <label>
-                            5.
-                            <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
-                        </label>
-                    </div>
-                {/if}
-                {#if $config.isManual}
-                    <div>
-                        <strong>MANUAL ANSWER HERE</strong>
-                        <textarea cols="60" rows="20" bind:value={injectedAnswer} />
-                        <br />
-                        <label>
-                            5.
-                            <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
-                        </label>
-                    </div>
-                {/if}
-            {/if}
-
-            {#if isReceiver}
-                {#if receivedOffer && !$config.isManual}
-                    <div>
-                        <textarea class:hideSignaling cols="60" rows="20" bind:value={receivedOffer} />
-                        <br />
-                        <label>
-                            3.
-                            <button on:click={() => applyRemoteOffer(receivedOffer)}>setRemoteDescription</button>
-                            <button on:click={createAnswer}>create answer</button>
-                        </label>
-                    </div>
-                {/if}
-                {#if $config.isManual}
-                    <div>
-                        <strong>MANUAL OFFER HERE</strong>
-                        <textarea cols="60" rows="20" bind:value={injectedOffer} />
-                        <br />
-                        <label>
-                            3.
-                            <button on:click={() => applyRemoteOffer(injectedOffer)}>setRemoteDescription</button>
-                            <button on:click={createAnswer}>create answer</button>
-                        </label>
-                    </div>
-                {/if}
-                {#if localAnswerSdp && receivedOffer}
-                    <div>
-                        <textarea class:hideSignaling cols="60" rows="20" bind:value={localAnswerSdp} />
-                        <br />
-                        <label>
-                            4.
-                            <button on:click={() => applyLocal(packAnswer(localAnswerSdp))}>setLocalDescription</button>
-                            <button on:click={sendAnswer}>send answer</button>
-                        </label>
-                    </div>
-                {/if}
-            {/if}
-
-            {#if readableCandidates.length || $config.isManual}
-                <textarea class:hideSignaling cols="60" rows="10" bind:value={readableCandidates} />
-            {/if}
-
-            {#if $config.isManual}
-                <label for="injectedCandidates">injected Candidates</label>
-                <textarea name="injectedCandidates" cols="60" rows="20" bind:value={injectedCandidates} />
-                <pre>{JSON.stringify(parsedInjectedCandidates, null, 4)}</pre>
-            {/if}
-
+                <label>
+                    <input type="checkbox" bind:checked={isReceiver} />
+                    receiver
+                </label>
+            </span>
         </div>
 
-    </div>
+        {#if isCaller}
+            <label>
+                1.
+                <button on:click={createOffer}>create offer</button>
+            </label>
+
+            {#if localOfferSdp}
+                <div>
+                    <textarea class:hideSignaling cols="60" rows="20" bind:value={localOfferSdp} />
+                    <br />
+                    <label>
+                        2.
+                        <button on:click={() => applyLocal(packOffer(localOfferSdp))}>setLocalDescription</button>
+                        <button on:click={sendOffer}>send offer</button>
+                    </label>
+                </div>
+            {/if}
+            {#if receivedAnswer && !$config.isManual}
+                <div>
+                    <textarea class:hideSignaling cols="60" rows="20" bind:value={receivedAnswer} />
+                    <br />
+                    <label>
+                        5.
+                        <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
+                    </label>
+                </div>
+            {/if}
+            {#if $config.isManual}
+                <div>
+                    <strong>MANUAL ANSWER HERE</strong>
+                    <textarea cols="60" rows="20" bind:value={injectedAnswer} />
+                    <br />
+                    <label>
+                        5.
+                        <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
+                    </label>
+                </div>
+            {/if}
+        {/if}
+
+        {#if isReceiver}
+            {#if receivedOffer && !$config.isManual}
+                <div>
+                    <textarea class:hideSignaling cols="60" rows="20" bind:value={receivedOffer} />
+                    <br />
+                    <label>
+                        3.
+                        <button on:click={() => applyRemoteOffer(receivedOffer)}>setRemoteDescription</button>
+                        <button on:click={createAnswer}>create answer</button>
+                    </label>
+                </div>
+            {/if}
+            {#if $config.isManual}
+                <div>
+                    <strong>MANUAL OFFER HERE</strong>
+                    <textarea cols="60" rows="20" bind:value={injectedOffer} />
+                    <br />
+                    <label>
+                        3.
+                        <button on:click={() => applyRemoteOffer(injectedOffer)}>setRemoteDescription</button>
+                        <button on:click={createAnswer}>create answer</button>
+                    </label>
+                </div>
+            {/if}
+            {#if localAnswerSdp && receivedOffer}
+                <div>
+                    <textarea class:hideSignaling cols="60" rows="20" bind:value={localAnswerSdp} />
+                    <br />
+                    <label>
+                        4.
+                        <button on:click={() => applyLocal(packAnswer(localAnswerSdp))}>setLocalDescription</button>
+                        <button on:click={sendAnswer}>send answer</button>
+                    </label>
+                </div>
+            {/if}
+        {/if}
+
+        {#if readableCandidates.length || $config.isManual}
+            <textarea class:hideSignaling cols="60" rows="10" bind:value={readableCandidates} />
+        {/if}
+
+        {#if $config.isManual}
+            <label for="injectedCandidates">injected Candidates</label>
+            <textarea name="injectedCandidates" cols="60" rows="20" bind:value={injectedCandidates} />
+            <pre>{JSON.stringify(parsedInjectedCandidates, null, 4)}</pre>
+        {/if}
+
+    </article>
+
 </section>

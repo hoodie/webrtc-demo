@@ -14,8 +14,9 @@
 
 </style>
 
-<label for="downstream">downstream</label>
-<video bind:this={videoTag} autoplay="true" width="400" height="300">
+<h5>downstream</h5>
+
+<video bind:this={videoTag} autoplay="true">
     <track kind="captions" />
 </video>
 

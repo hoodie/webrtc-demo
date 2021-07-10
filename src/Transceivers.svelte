@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 
     import Details from './Details.svelte';
-    export let name;
     export let peerconnection;
 
     $: transceivers = peerconnection && peerconnection.getTransceivers();
@@ -54,10 +53,21 @@
 	});
 </script>
 
-    <h5>transceivers of {name}</h5>
+
+<style>
+
+</style>
+
+<h5>transceivers</h5>
 {#if transceiverDetails}
     {#each transceiverDetails as transceiverDetail}
         {`transceiver ${transceiverDetail.mid}`}
+        <table>
+            <tr>
+                <th>mid</th>
+                <td><code>{transceiverDetail.mid}</code></td>
+            </tr>
+        </table>
         <Details
             summary='details'
             data={transceiverDetail}

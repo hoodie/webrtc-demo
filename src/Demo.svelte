@@ -8,8 +8,8 @@
 </script>
 
 <style>
-    section {
-        display: grid;
+    main {
+        display: flex;
         grid-template-columns: 1fr 1fr 1fr;
     }
 
@@ -27,7 +27,7 @@
         <Config />
     </aside>
 
-    <section>
+    <main>
 
         {#if $config.hasCaller}
             <Participant name="alice" isCaller="true" recipient="bob" />
@@ -42,5 +42,5 @@
                 <EventLog />
             </div>
         {/if}
-    </section>
+    </main>
 </div>

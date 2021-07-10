@@ -93,14 +93,6 @@
 </script>
 
 <style>
-    video {
-        padding: 0.5em;
-        border: 1px solid #aaa;
-        border-radius: 2px;
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-        margin: 0 0 1em 0;
-        background-color: black;
-    }
     nav {
         display: block;
     }
@@ -109,10 +101,12 @@
     }
 </style>
 
-<label for="upstream">upstream</label>
-<video id="upstream" bind:this={upstreamVideo} autoplay="true" width="400" height="300">
+<h5>upstream</h5>
+
+<video id="upstream" bind:this={upstreamVideo} autoplay="true">
     <track kind="captions" />
 </video>
+
 <nav>
 
     <button on:click={() => getWebcam()}>default</button>
