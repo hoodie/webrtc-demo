@@ -117,7 +117,7 @@
         addEvent('at', 'add track');
         console.info('add track');
         sender = peerConnection.addTrack(stream.getTracks()[0], stream);
-}
+    }
 
     function addStream(stream) {
         if (sender) {

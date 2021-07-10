@@ -67,6 +67,9 @@
     function deleteStream(stream) {
         stopStream(stream)
         videoStreams = [...videoStreams.filter(s => s != stream)]
+        if (upstreamStream === stream) {
+            upstreamStream = undefined
+        }
     }
 
     function getDeviceLabel(id) {
