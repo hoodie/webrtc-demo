@@ -108,6 +108,11 @@ button {
 	outline: none;
 }
 
+button.btn-small {
+	font-size: 0.7em;
+	padding: 0.2em;
+}
+
 button:active {
 	background-color: #ddd;
 }

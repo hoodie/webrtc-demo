@@ -256,7 +256,7 @@
     {/if}
 
     <article class="box">
-        <h5>streams</h5>
+        <h5>peerconnection</h5>
         <button on:click={() => addStream(videoUpstream)} disabled={!Boolean(videoUpstream)}>
             {#if sender}replaceTrack{:else}addStream{/if}
         </button>
@@ -267,10 +267,8 @@
                 </code>
             </small>
         {/if}
-    </article>
 
-    <article class="box">
-        <Transceivers peerconnection={peerConnection} />
+        <Transceivers peerconnection={peerConnection} streamSource={() => videoUpstream} />
     </article>
 
     <article class="box">
