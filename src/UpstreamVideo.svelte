@@ -97,6 +97,9 @@
     button {
         font-size: small;
     }
+    video {
+        transform: scale(-1, 1);
+    }
 </style>
 
 <h5>upstream</h5>

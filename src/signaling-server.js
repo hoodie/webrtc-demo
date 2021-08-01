@@ -16,6 +16,7 @@ const getClients = (channelToSend, me) =>
 
 
 wss.on('connection', (ws, channel) => {
+    console.debug('🤝 new connection')
     addClient(channel, ws);
 
     ws.on('message', (data) => {
