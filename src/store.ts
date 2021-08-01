@@ -69,13 +69,13 @@ export const config = derived(
 );
 
 export const eventLogByName = writable({});
-export function addEvent(name, short, event) {
+export function addEvent(name: string, short?: string, event?: any) {
     const newEvent = { name, short, event };
     eventLog.update(events => ([...events, newEvent]));
     eventLogByName.update(events => ({ ...events, [name]: [...events[name] || [], short] }));
 }
 
-export const addEventFor = (name) => (short, event) => addEvent(name, short, event);
+export const addEventFor = (name: string) => (short: string, event?: any) => addEvent(name, short, event);
 
 
 

@@ -6,18 +6,16 @@
     let upstreamVideo;
     let currentActiveStream;
     $: mainTrack = currentActiveStream && currentActiveStream.getTracks()[0];
-    $: upstreamName = currentActiveStream && currentActiveStream.constructor.name
+    $: upstreamName = currentActiveStream && currentActiveStream.constructor.name;
 
     let videoDevices = [];
     let videoStreams = [];
 
     async function getWebcamFeed(deviceId) {
         const constraint = {
-                video: deviceId ? {deviceId} : true
-            };
-        return await navigator
-            .mediaDevices
-            .getUserMedia(constraint);
+            video: deviceId ? { deviceId } : true,
+        };
+        return await navigator.mediaDevices.getUserMedia(constraint);
     }
 
     function makeNoise() {
@@ -36,48 +34,46 @@
     }
 
     async function getNoise() {
-        const stream = await makeNoise()
-        stream.name = 'noise feed'
-        makeMainStream(stream)
-        videoStreams = [...videoStreams, stream]
+        const stream = await makeNoise();
+        stream.name = 'noise feed';
+        makeMainStream(stream);
+        videoStreams = [...videoStreams, stream];
     }
 
     async function getWebcam(deviceId) {
-        const stream = await getWebcamFeed(deviceId)
-        stream.name = deviceId ? getDeviceLabel(deviceId) : 'default webcam'
-        makeMainStream(stream)
-        videoStreams = [...videoStreams, stream]
+        const stream = await getWebcamFeed(deviceId);
+        stream.name = deviceId ? getDeviceLabel(deviceId) : 'default webcam';
+        makeMainStream(stream);
+        videoStreams = [...videoStreams, stream];
     }
 
     function makeMainStream(stream) {
-        currentActiveStream = stream
+        currentActiveStream = stream;
         upstreamVideo.srcObject = stream;
-        dispatch('stream', stream)
+        dispatch('stream', stream);
     }
 
     function stopStream(stream) {
-        stream.getTracks().forEach((track) => track.stop())
-        dispatch('stop', stream)
+        stream.getTracks().forEach((track) => track.stop());
+        dispatch('stop', stream);
     }
 
     function deleteStream(stream) {
-        stopStream(stream)
-        videoStreams = [...videoStreams.filter(s => s != stream)]
+        stopStream(stream);
+        videoStreams = [...videoStreams.filter((s) => s != stream)];
         if (currentActiveStream === stream) {
-            currentActiveStream = undefined
+            currentActiveStream = undefined;
         }
     }
 
     function getDeviceLabel(id) {
-        const device = id && videoDevices.find(({ deviceId }) => deviceId === id)
-        return device && device.label
+        const device = id && videoDevices.find(({ deviceId }) => deviceId === id);
+        return device && device.label;
     }
 
     async function getVideoDevices() {
-        const devices = await navigator
-            .mediaDevices
-            .enumerateDevices()
-            videoDevices = devices.filter(({kind}) => kind === 'videoinput')
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        videoDevices = devices.filter(({ kind }) => kind === 'videoinput');
     }
 
     onMount(() => {
@@ -86,7 +82,7 @@
         navigator.mediaDevices.addEventListener('devicechange', keepUpdatingDevices);
         return () => {
             navigator.mediaDevices.removeEventListener('devicechange', keepUpdatingDevices);
-        }
+        };
     });
 </script>
 
@@ -96,12 +92,12 @@
     }
     button {
         font-size: small;
+        display: inline;
     }
     video {
         transform: scale(-1, 1);
     }
 </style>
-
 <h5>upstream</h5>
 
 <video id="upstream" bind:this={upstreamVideo} autoplay="true">
@@ -109,38 +105,39 @@
 </video>
 
 <nav>
-
     <button on:click={() => getWebcam()}>default</button>
     <button on:click={() => getNoise()}>noise</button>
-    <br>
+    <br />
     {#each videoDevices as device, index}
-    <button
-        on:click={() => getWebcam(device.deviceId)}
-        >
-        {device.label || `camera ${index}`}
-    </button>
+        <button on:click={() => getWebcam(device.deviceId)}>
+            {device.label || `camera ${index}`}
+        </button>
     {/each}
-
 </nav>
 
 <table>
-{#each videoStreams as stream}
-<tr>
-    <td>{#if currentActiveStream === stream}✔️{/if}</td>
-    <td> <button on:click={() => makeMainStream(stream)}> {stream.name}</button></td>
-    <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
-    <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
-</tr>
-{/each}
+    {#each videoStreams as stream}
+        <tr>
+            <td
+                >{#if currentActiveStream === stream}✔️{/if}</td
+            >
+            <td> <button on:click={() => makeMainStream(stream)}> {stream.name}</button></td>
+            <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
+            <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
+        </tr>
+    {/each}
 </table>
 
 {#if mainTrack}
-<details>
-    <summary> {upstreamName} </summary>
+    <details>
+        <summary> {upstreamName} </summary>
 
-    <dl><dt>readState</dt><dd>{mainTrack.readyState}</dd></dl>
+        <dl>
+            <dt>readState</dt>
+            <dd>{mainTrack.readyState}</dd>
+        </dl>
 
-    <Details summary="settings" data={mainTrack.getSettings()} />
-    <Details summary="constraints" data={mainTrack.getConstraints()} />
-</details>
+        <Details summary="settings" data={mainTrack.getSettings()} />
+        <Details summary="constraints" data={mainTrack.getConstraints()} />
+    </details>
 {/if}

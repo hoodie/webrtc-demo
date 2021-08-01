@@ -13,5 +13,5 @@ export const safeParse = json => {
     }
 };
 
-export const packOffer = sdp => ({ type: 'offer', sdp });
-export const packAnswer = sdp => ({ type: 'answer', sdp });
+export const packOffer = (sdp: string): RTCSessionDescriptionInit => ({ type: 'offer', sdp });
+export const packAnswer = (sdp: string): RTCSessionDescriptionInit => ({ type: 'answer', sdp });

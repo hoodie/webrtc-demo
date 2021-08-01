@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, SvelteComponent } from 'svelte';
     import { config, addEventFor, eventLogByName } from './store';
     import {
         offerStore,
@@ -11,7 +11,7 @@
         clearCandidatesFrom,
     } from './signalingStore';
     import { SignalingClient } from './signalingClient';
-    import { justTheSdp, safeParse, packOffer, packAnswer } from './util.js';
+    import { justTheSdp, safeParse, packOffer, packAnswer } from './util';
 
     import UpstreamVideo from './UpstreamVideo.svelte';
     import Downstream from './Downstream.svelte';
@@ -31,12 +31,12 @@
 
     const addEvent = addEventFor(name);
 
-    let downstreamComponent;
+    let downstreamComponent: Downstream;
     $: events = $eventLogByName[name] || [];
 
     let peerConnection: RTCPeerConnection;
     let sender: RTCRtpSender;
-    let videoUpstream: MediaStream;
+    let videoUpstream: MediaStream & { name?: string };
 
     let signalingState = '';
     let connectionState = '';
@@ -60,14 +60,13 @@
     let pcconfig = (() =>
         new URL(document.location.toString()).searchParams.get('semantic') === 'plan-b'
             ? { sdpSemantics: 'plan-b' }
-            : { sdpSemantics: 'unified-plan' }
-            )();
+            : { sdpSemantics: 'unified-plan' })();
 
     function initPeerConnection() {
         pcconfig.sdpSemantics === 'unified-plan';
 
         const pc = new RTCPeerConnection(pcconfig as any);
-        pc.ontrack = event => {
+        pc.ontrack = (event) => {
             const { track, streams, transceiver } = event;
             const stream = streams[0];
             downstreamComponent.$set({ stream });
@@ -83,15 +82,15 @@
                     kind: track.kind,
                     transceiver,
                 });
-                track.onmute = event => {
+                track.onmute = (event) => {
                     addEvent('tm', 'track muted');
                     console.info(`${name} track onmute`, { event });
                 };
-                track.onunmute = event => {
+                track.onunmute = (event) => {
                     addEvent('tu', 'track unmuted');
                     console.info(`${name} track onunmute`, { event });
                 };
-                track.onended = event => {
+                track.onended = (event) => {
                     addEvent('te', 'track ended');
                     console.debug(`${name} track onended`, { event });
                 };
@@ -161,10 +160,10 @@
         addEvent('l', 'setLocalDescription');
         console.debug('localDescription ->', localOfferSdp);
         const sessionDesc = localOfferSdp;
-        clearCandidatesFrom({from: name});
+        clearCandidatesFrom({ from: name });
         peerConnection.setLocalDescription(sessionDesc); //
         applyCandidates();
-        clearCandidatesFrom({from :recipient});
+        clearCandidatesFrom({ from: recipient });
     }
 
     function applyRemoteOffer(receivedOffer) {
@@ -172,12 +171,12 @@
         const sessionDesc = packOffer(receivedOffer);
         peerConnection.setRemoteDescription(sessionDesc);
         applyCandidates();
-        clearCandidatesFrom({from:recipient});
+        clearCandidatesFrom({ from: recipient });
     }
 
     function applyCandidates() {
         if ($config.isManual) {
-            (parsedInjectedCandidates || []).forEach(c => {
+            (parsedInjectedCandidates || []).forEach((c) => {
                 if (c) {
                     addEvent('ac', 'addIceCandidate');
                     peerConnection.addIceCandidate(c);
@@ -185,7 +184,7 @@
             });
         } else {
             console.debug($candidatesStore[recipient]);
-            ($candidatesStore[recipient] || []).forEach(c => {
+            ($candidatesStore[recipient] || []).forEach((c) => {
                 if (c) {
                     addEvent('ac', 'addIceCandidate');
                     peerConnection.addIceCandidate(c);
@@ -198,7 +197,7 @@
         addEvent('r', 'setRemoteDescription');
         const sessionDesc = packAnswer(receivedOffer);
         peerConnection.setRemoteDescription(sessionDesc);
-        clearCandidatesFrom({from: name});
+        clearCandidatesFrom({ from: name });
     }
 
     $: hideSignaling = $config.hideSignaling;
@@ -230,42 +229,48 @@
     .hideSignaling {
         display: none;
     }
-
 </style>
 
 <section>
-    <h3>{name}
-    <small>talking to {recipient}</small>
+    <h3>
+        {name}
+        <small>talking to {recipient}</small>
     </h3>
     {#if $config.isRemote}
         <RemoteBar {signalingClient} />
     {/if}
 
     {#if $config.hasUpstream}
-    <article id="upstream" class="box">
-        <UpstreamVideo
-            on:stream={({ detail: stream }) => videoUpstream = stream}
-            on:stop={() => videoUpstream = undefined}
-        />
-    </article>
+        <article id="upstream" class="box">
+            <UpstreamVideo
+                on:stream={({ detail: stream }) => (videoUpstream = stream)}
+                on:stop={() => (videoUpstream = undefined)}
+            />
+        </article>
     {/if}
 
     {#if $config.hasDownstream}
-    <article id="downstream" class="box">
-        <Downstream bind:this={downstreamComponent} stream={undefined} />
-    </article>
+        <article id="downstream" class="box">
+            <Downstream bind:this={downstreamComponent} stream={undefined} />
+        </article>
     {/if}
 
     <article class="box">
         <h5>streams</h5>
-        <button on:click={() => addStream(videoUpstream)}
-            disabled={!Boolean(videoUpstream)}>
+        <button on:click={() => addStream(videoUpstream)} disabled={!Boolean(videoUpstream)}>
             {#if sender}replaceTrack{:else}addStream{/if}
         </button>
+        {#if videoUpstream && videoUpstream.name}
+            <small>
+                <code>
+                    <pre>{videoUpstream.name}</pre>
+                </code>
+            </small>
+        {/if}
     </article>
 
     <article class="box">
-        <Transceivers peerconnection={peerConnection}/>
+        <Transceivers peerconnection={peerConnection} />
     </article>
 
     <article class="box">
@@ -286,13 +291,12 @@
                     <td> <code>{iceConnectionState}</code> </td>
                 </tr>
                 {#if !hideSignaling}
-                <tr>
-                    <th> events: </th>
-                    <td> <code> <small>{events.join(' ')}</small> </code> </td>
-                </tr>
+                    <tr>
+                        <th> events: </th>
+                        <td> <code> <small>{events.join(' ')}</small> </code> </td>
+                    </tr>
                 {/if}
             </table>
-
         </div>
 
         <div class="box">
@@ -316,7 +320,7 @@
 
             {#if localOfferSdp}
                 <div>
-                    <textarea class:hideSignaling rows=20 bind:value={localOfferSdp} />
+                    <textarea class:hideSignaling rows="20" bind:value={localOfferSdp} />
                     <br />
                     <label>
                         2.
@@ -394,7 +398,5 @@
             <textarea name="injectedCandidates" rows="20" bind:value={injectedCandidates} />
             <pre>{JSON.stringify(parsedInjectedCandidates, null, 4)}</pre>
         {/if}
-
     </article>
-
 </section>
