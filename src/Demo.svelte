@@ -29,7 +29,7 @@
             <Participant name="bob" isReceiver="true" recipient="alice" />
         {/if}
 
-        {#if !$config.hideSignaling}
+        {#if !$config.hideEvents}
             <EventLog />
         {/if}
     </main>
