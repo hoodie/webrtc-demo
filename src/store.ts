@@ -75,7 +75,7 @@ export const config = derived(
 export const eventLogByName = writable({});
 
 export function addEvent(name: string, short?: string, event?: any) {
-    const newEvent = { name, short, event };
+    const newEvent = { name, short, event, timestamp: new Date().toISOString().split('T')[1] };
     eventLog.update(events => ([...events, newEvent]));
     eventLogByName.update(events => ({ ...events, [name]: [...events[name] || [], short] }));
 }
