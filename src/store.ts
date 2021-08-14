@@ -24,6 +24,7 @@ const readConfigFromQuery = () => {
     const filledQuery = {
         role: queryEntries.role || 'both',
         stream: queryEntries.stream || 'both',
+        autoSignal: boolify(queryEntries.autoSignal),
         audioVisOnly: boolify(queryEntries.audioVisOnly),
         manual: boolify(queryEntries.manual),
         remote: boolify(queryEntries.remote),
@@ -46,7 +47,7 @@ export const config = derived(
     $query => {
 
         const config = Object.fromEntries($query.map(({ key, value }) => [key, value]));
-        let { role, stream, manual, remote, hideSignaling, hideEvents } = config;
+        let { role, stream, manual, remote, hideSignaling, hideEvents, autoSignal } = config;
 
         const hasCaller = role !== 'recv';
         const hasReceiver = role !== 'call' && role !== 'send' || false;
@@ -61,6 +62,7 @@ export const config = derived(
             ...config,
             role, stream, manual, remote,
             hasCaller, hasReceiver, hasUpstream, hasDownstream,
+            autoSignal,
             isManual, isRemote,
             hideSignaling,
             hideEvents,

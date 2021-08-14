@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount, SvelteComponent } from 'svelte';
+    import { onMount } from 'svelte';
     import { config, addEventFor, eventLogByName } from './store';
     import {
         offerStore,
@@ -9,6 +9,7 @@
         sendAnswerFrom,
         sendCandidateFrom,
         clearCandidatesFrom,
+        EVENT_BUS,
     } from './signalingStore';
     import { SignalingClient } from './signalingClient';
     import { justTheSdp, safeParse, packOffer, packAnswer } from './util';
@@ -20,6 +21,7 @@
 
     export let isCaller = false;
     export let isReceiver = false;
+    $: autoSignal = $config.autoSignal as boolean;
 
     export let name = 'unnamed participant';
     export let recipient: string | null = null;
@@ -46,6 +48,20 @@
     $: receivedOffer = justTheSdp($offerStore[recipient]);
     $: receivedAnswer = justTheSdp($answerStore[recipient]);
 
+    EVENT_BUS.addEventListener(`OfferTo:${name}`, async ({ detail: offer }: CustomEvent) => {
+        if (autoSignal) {
+            applyRemoteOffer(justTheSdp(offer));
+            await createAnswer();
+            applyLocal(packAnswer(localAnswerSdp));
+            sendAnswer();
+        }
+    });
+    EVENT_BUS.addEventListener(`AnswerTo:${name}`, async ({ detail: answer }: CustomEvent) => {
+        if (autoSignal) {
+            applyRemoteAnswer(justTheSdp(answer));
+        }
+    });
+
     let localAnswerSdp = '';
 
     let injectedOffer = '';
@@ -67,7 +83,7 @@
 
         const pc = new RTCPeerConnection(pcconfig as any);
 
-        pc.addEventListener('track' , (event) => {
+        pc.addEventListener('track', (event) => {
             addEvent('pct', 'pc ontrack');
             const { track, streams, transceiver } = event;
             const stream = streams[0];
@@ -98,17 +114,27 @@
             stream.addEventListener('removetrack', () => {
                 addEvent('stream track removed', 'rem');
             });
-
         });
 
-        pc.onicecandidate = ({ candidate }) => {
+        pc.addEventListener('icecandidate', ({ candidate }) => {
             addEvent('lc', 'create candidate');
             rawCandidates = [...rawCandidates, candidate];
             sendCandidate(candidate);
-        };
-        pc.onsignalingstatechange = () => (signalingState = pc.signalingState);
-        pc.onconnectionstatechange = () => (connectionState = pc.connectionState);
-        pc.oniceconnectionstatechange = () => (iceConnectionState = pc.iceConnectionState);
+        });
+
+        pc.addEventListener('signalingstatechange', () => (signalingState = pc.signalingState));
+        pc.addEventListener('connectionstatechange', () => (connectionState = pc.connectionState));
+        pc.addEventListener('iceconnectionstatechange', () => (iceConnectionState = pc.iceConnectionState));
+        pc.addEventListener('negotiationneeded', () => addEvent('negotiation needed', 'nn'));
+
+        pc.addEventListener('addstream', (stream) => {
+            addEvent('addstream', '🗑as');
+            console.warn('addstream', stream);
+        });
+        pc.addEventListener('removestream', (stream) => {
+            addEvent('removestream', '🗑rs');
+            console.warn('removestream', stream);
+        });
 
         console.info(`setup RTCPeerConnection for ${name}`, pcconfig, pc);
         return pc;
@@ -124,6 +150,12 @@
             console.info('add track');
             sender = peerConnection.addTrack(stream.getTracks()[0], stream);
         }
+    }
+
+    async function startCall() {
+        await createOffer();
+        applyLocal(packOffer(localOfferSdp))
+        sendOffer()
     }
 
     async function createOffer() {
@@ -145,12 +177,14 @@
         const offer = packOffer(localOfferSdp);
         sendOfferFrom({ from: name, offer });
         $config.isRemote && signalingClient.sendOffer(offer);
+        EVENT_BUS.dispatchEvent(new CustomEvent(`OfferTo:${recipient}`, { detail: offer }));
     }
 
     function sendAnswer() {
         const answer = packOffer(localAnswerSdp);
         sendAnswerFrom({ from: name, answer });
         $config.isRemote && signalingClient.sendAnswer(answer);
+        EVENT_BUS.dispatchEvent(new CustomEvent(`AnswerTo:${recipient}`, { detail: answer }));
     }
 
     function sendCandidate(candidate) {
@@ -312,13 +346,24 @@
                     <input type="checkbox" bind:checked={isReceiver} />
                     receiver
                 </label>
+                <label>
+                    <input type="checkbox" bind:checked={autoSignal} />
+                    auto
+                </label>
             </span>
         </div>
 
         {#if isCaller}
+            {#if autoSignal}
+                <label>
+                    0.
+                    <button on:click={startCall}>start call</button>
+                </label>
+            {/if}
+
             <label>
                 1.
-                <button on:click={createOffer}>create offer</button>
+                <button on:click={createOffer} disabled={autoSignal}>create offer</button>
             </label>
 
             {#if localOfferSdp}
@@ -327,8 +372,8 @@
                     <br />
                     <label>
                         2.
-                        <button on:click={() => applyLocal(packOffer(localOfferSdp))}>setLocalDescription</button>
-                        <button on:click={sendOffer}>send offer</button>
+                        <button on:click={() => applyLocal(packOffer(localOfferSdp))} disabled={autoSignal}>setLocalDescription</button>
+                        <button on:click={sendOffer} disabled={autoSignal}>send offer</button>
                     </label>
                 </div>
             {/if}
@@ -338,7 +383,7 @@
                     <br />
                     <label>
                         5.
-                        <button on:click={() => applyRemoteAnswer(receivedAnswer)}>setRemoteDescription</button>
+                        <button on:click={() => applyRemoteAnswer(receivedAnswer)} disabled={autoSignal}>setRemoteDescription</button>
                     </label>
                 </div>
             {/if}
@@ -349,7 +394,7 @@
                     <br />
                     <label>
                         5.
-                        <button on:click={() => applyRemoteAnswer(injectedAnswer)}>setRemoteDescription</button>
+                        <button on:click={() => applyRemoteAnswer(injectedAnswer)} disabled={autoSignal}>setRemoteDescription</button>
                     </label>
                 </div>
             {/if}
@@ -362,8 +407,8 @@
                     <br />
                     <label>
                         3.
-                        <button on:click={() => applyRemoteOffer(receivedOffer)}>setRemoteDescription</button>
-                        <button on:click={createAnswer}>create answer</button>
+                        <button on:click={() => applyRemoteOffer(receivedOffer)} disabled={autoSignal}>setRemoteDescription</button>
+                        <button on:click={createAnswer} disabled={autoSignal}>create answer</button>
                     </label>
                 </div>
             {/if}
@@ -374,8 +419,8 @@
                     <br />
                     <label>
                         3.
-                        <button on:click={() => applyRemoteOffer(injectedOffer)}>setRemoteDescription</button>
-                        <button on:click={createAnswer}>create answer</button>
+                        <button on:click={() => applyRemoteOffer(injectedOffer)} disabled={autoSignal}>setRemoteDescription</button>
+                        <button on:click={createAnswer} disabled={autoSignal}>create answer</button>
                     </label>
                 </div>
             {/if}
@@ -385,8 +430,8 @@
                     <br />
                     <label>
                         4.
-                        <button on:click={() => applyLocal(packAnswer(localAnswerSdp))}>setLocalDescription</button>
-                        <button on:click={sendAnswer}>send answer</button>
+                        <button on:click={() => applyLocal(packAnswer(localAnswerSdp))} disabled={autoSignal}>setLocalDescription</button>
+                        <button on:click={sendAnswer} disabled={autoSignal}>send answer</button>
                     </label>
                 </div>
             {/if}
