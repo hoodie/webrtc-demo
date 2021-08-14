@@ -122,3 +122,49 @@ export function renderWaveForm({ analyser, canvas }: RenderWaveFormConfig): Anal
         },
     };
 }
+
+export function renderFloatBars({ analyser, canvas }: RenderWaveFormConfig): AnalyserRenderer {
+    console.log('creating renderer', { analyser, canvas });
+    const ctx = canvas.getContext('2d');
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Float32Array(bufferLength);
+
+    let animationHandle: number;
+
+    const {width: WIDTH, height: HEIGHT} = canvas;
+
+    function draw() {
+
+        analyser.getFloatFrequencyData(dataArray);
+  
+        ctx.fillStyle = 'rgb(0, 0, 0)';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  
+        var barWidth = (WIDTH / bufferLength) * 2.5;
+        var barHeight;
+        var x = 0;
+  
+        for(var i = 0; i < bufferLength; i++) {
+          barHeight = (dataArray[i] + 140)*2;
+          
+          ctx.fillStyle = 'rgb(' + Math.floor(barHeight+100) + ',50,50)';
+          ctx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
+  
+          x += barWidth + 1;
+        }
+
+        animationHandle = requestAnimationFrame(draw);
+    }
+
+    return {
+        start() {
+            if (typeof animationHandle == 'undefined') {
+                draw()
+            }
+        },
+        stop() {
+            cancelAnimationFrame(animationHandle);
+            animationHandle = undefined;
+        },
+    };
+}

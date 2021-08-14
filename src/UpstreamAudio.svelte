@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, createEventDispatcher } from 'svelte';
-    import { renderVolume, renderWaveForm } from './visualizers';
+    import { renderFloatBars, renderVolume, renderWaveForm } from './visualizers';
     const dispatch = createEventDispatcher();
 
     let upstreamAudio: HTMLAudioElement;
@@ -21,11 +21,18 @@
         analyser.fftSize = 2048;
     }
 
-    function initRenderer(): void {
+    function initRendererWaveForm(): void {
         if (renderer) {
             renderer.stop();
         }
         renderer = renderWaveForm({ analyser, canvas });
+        renderer.start();
+    }
+    function initRendererBars(): void {
+        if (renderer) {
+            renderer.stop();
+        }
+        renderer = renderFloatBars({ analyser, canvas });
         renderer.start();
     }
 
@@ -124,7 +131,8 @@
     </audio>
 </nav>
 
-<button on:click={() => initRenderer()}>waveform</button>
+<button on:click={() => initRendererBars()}>bars</button>
+<button on:click={() => initRendererWaveForm()}>waveform</button>
 <button on:click={() => initRendererVolume()}>volume</button>
 
 <table>
