@@ -18,6 +18,7 @@
     import Downstream from './Downstream.svelte';
     import RemoteBar from './RemoteBar.svelte';
     import Transceivers from './Transceivers.svelte';
+    import SdpTextArea from './SdpTextArea.svelte';
 
     export let isCaller = false;
     export let isReceiver = false;
@@ -393,7 +394,7 @@
 
             {#if localOfferSdp}
                 <div>
-                    <textarea class:hideSignaling rows="20" bind:value={localOfferSdp} />
+                    <SdpTextArea {hideSignaling} rows={20} bind:value={localOfferSdp} />
                     <br />
                     <label>
                         2.
@@ -404,7 +405,7 @@
             {/if}
             {#if receivedAnswer && !$config.isManual}
                 <div>
-                    <textarea class:hideSignaling rows="20" bind:value={receivedAnswer} />
+                    <SdpTextArea {hideSignaling} rows={20} bind:value={receivedAnswer} />
                     <br />
                     <label>
                         5.
@@ -415,7 +416,7 @@
             {#if $config.isManual}
                 <div>
                     <strong>MANUAL ANSWER HERE</strong>
-                    <textarea rows="20" bind:value={injectedAnswer} />
+                    <SdpTextArea {hideSignaling} rows={20} bind:value={injectedAnswer} />
                     <br />
                     <label>
                         5.
@@ -428,7 +429,7 @@
         {#if isReceiver}
             {#if receivedOffer && !$config.isManual}
                 <div>
-                    <textarea class:hideSignaling rows="20" bind:value={receivedOffer} />
+                    <SdpTextArea {hideSignaling} rows={20} bind:value={receivedOffer} />
                     <br />
                     <label>
                         3.
@@ -440,7 +441,7 @@
             {#if $config.isManual}
                 <div>
                     <strong>MANUAL OFFER HERE</strong>
-                    <textarea rows="20" bind:value={injectedOffer} />
+                    <SdpTextArea rows={20} bind:value={injectedOffer} />
                     <br />
                     <label>
                         3.
@@ -451,7 +452,7 @@
             {/if}
             {#if localAnswerSdp && receivedOffer}
                 <div>
-                    <textarea class:hideSignaling rows="20" bind:value={localAnswerSdp} />
+                    <SdpTextArea {hideSignaling} rows={20} bind:value={localAnswerSdp} />
                     <br />
                     <label>
                         4.
