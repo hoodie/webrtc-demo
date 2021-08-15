@@ -15,10 +15,18 @@
     div {
         padding: 1em;
     }
+
+    aside {
+        height: 20px;
+    }
+
 </style>
 
 <div>
     <h1>WebRTC Plumber</h1>
+
+    <aside> <Config /> </aside>
+
     <main>
 
         {#if $config.hasCaller}
@@ -34,8 +42,5 @@
         {/if}
     </main>
 
-    <aside>
-        <Config />
-    </aside>
 
 </div>
