@@ -43,24 +43,35 @@
     let signalingState = '';
     let connectionState = '';
     let iceConnectionState = '';
+    let iceGatheringState = '';
 
     let localOfferSdp = '';
     $: receivedOffer = justTheSdp($offerStore[recipient]);
     $: receivedAnswer = justTheSdp($answerStore[recipient]);
 
-    EVENT_BUS.addEventListener(`OfferTo:${name}`, async ({ detail: offer }: CustomEvent) => {
-        if (autoSignal) {
-            applyRemoteOffer(justTheSdp(offer));
-            await createAnswer();
-            applyLocal(packAnswer(localAnswerSdp));
-            sendAnswer();
-        }
-    });
-    EVENT_BUS.addEventListener(`AnswerTo:${name}`, async ({ detail: answer }: CustomEvent) => {
-        if (autoSignal) {
-            applyRemoteAnswer(justTheSdp(answer));
-        }
-    });
+    {
+        // autosignaling Events
+        EVENT_BUS.addEventListener(`OfferTo:${name}`, async ({ detail: offer }: CustomEvent) => {
+            if (autoSignal) {
+                applyRemoteOffer(justTheSdp(offer));
+                await createAnswer();
+                applyLocal(packAnswer(localAnswerSdp));
+                sendAnswer();
+            }
+        });
+
+        EVENT_BUS.addEventListener(`AnswerTo:${name}`, async ({ detail: answer }: CustomEvent) => {
+            if (autoSignal) {
+                applyRemoteAnswer(justTheSdp(answer));
+            }
+        });
+
+        EVENT_BUS.addEventListener(`CandidateTo:${name}`, async ({ detail: candidate }: CustomEvent) => {
+            if (autoSignal) {
+                await applyCandidate(candidate);
+            }
+        });
+    }
 
     let localAnswerSdp = '';
 
@@ -124,7 +135,11 @@
 
         pc.addEventListener('signalingstatechange', () => (signalingState = pc.signalingState));
         pc.addEventListener('connectionstatechange', () => (connectionState = pc.connectionState));
+
+        // pc.addEventListener('icecandidateerror', (error) => );
         pc.addEventListener('iceconnectionstatechange', () => (iceConnectionState = pc.iceConnectionState));
+        pc.addEventListener('icegatheringstatechange', ({ target: { iceGatheringState: state } }: any) => (iceGatheringState = state));
+
         pc.addEventListener('negotiationneeded', () => addEvent('negotiation needed', 'nn'));
 
         pc.addEventListener('addstream', (stream) => {
@@ -191,6 +206,7 @@
         if (name && candidate) {
             sendCandidateFrom({ from: name, candidate });
             $config.isRemote && signalingClient.sendCandidate(candidate);
+            EVENT_BUS.dispatchEvent(new CustomEvent(`CandidateTo:${recipient}`, { detail: candidate }));
         }
     }
 
@@ -229,6 +245,11 @@
                 }
             });
         }
+    }
+
+    async function applyCandidate(candidate: RTCIceCandidate) {
+        addEvent('ac', 'addIceCandidate');
+        await peerConnection.addIceCandidate(candidate);
     }
 
     function applyRemoteAnswer(receivedOffer) {
@@ -324,8 +345,12 @@
                     <td> <code>{connectionState}</code> </td>
                 </tr>
                 <tr>
-                    <th> ice: </th>
-                    <td> <code>{iceConnectionState}</code> </td>
+                    <th> iceGathering: </th>
+                    <td> <code> {iceGatheringState}</code>
+                </tr>
+                <tr>
+                    <th> iceConnection: </th>
+                    <td> <code> {iceConnectionState}</code> </td>
                 </tr>
                 {#if !hideEvents}
                     <tr>
