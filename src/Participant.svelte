@@ -98,14 +98,16 @@
         pc.addEventListener('track', (event) => {
             addEvent('pct', 'pc ontrack');
             const { track, streams, transceiver } = event;
-            const stream = streams[0];
+            const stream = streams[0] || new MediaStream([track]);
+
             console.info(`${name}.ontrack`, {
                 track,
                 streams,
                 kind: track.kind,
                 transceiver,
             });
-            downstreamComponent.$set({ stream });
+
+            useDownstream({ stream, track });
 
             track.addEventListener('ended', () => {
                 addEvent('track ended', 'te');
@@ -139,7 +141,10 @@
 
         // pc.addEventListener('icecandidateerror', (error) => );
         pc.addEventListener('iceconnectionstatechange', () => (iceConnectionState = pc.iceConnectionState));
-        pc.addEventListener('icegatheringstatechange', ({ target: { iceGatheringState: state } }: any) => (iceGatheringState = state));
+        pc.addEventListener(
+            'icegatheringstatechange',
+            ({ target: { iceGatheringState: state } }: any) => (iceGatheringState = state)
+        );
 
         pc.addEventListener('negotiationneeded', () => addEvent('negotiation needed', 'nn'));
 
@@ -170,8 +175,8 @@
 
     async function startCall() {
         await createOffer();
-        applyLocal(packOffer(localOfferSdp))
-        sendOffer()
+        applyLocal(packOffer(localOfferSdp));
+        sendOffer();
     }
 
     async function createOffer() {
@@ -260,6 +265,17 @@
         clearCandidatesFrom({ from: name });
     }
 
+    function useDownstream(usable: { stream?: MediaStream; track?: MediaStreamTrack }) {
+        if (usable.stream) {
+            downstreamComponent.$set({ stream: usable.stream });
+        } else if (usable.track) {
+            const stream = new MediaStream([usable.track]);
+            downstreamComponent.$set({ stream });
+        } else {
+            console.error("can't use stream or track, nothing there", usable);
+        }
+    }
+
     $: hideSignaling = $config.hideSignaling;
     $: hideEvents = $config.hideEvents;
 
@@ -318,9 +334,13 @@
 
     <article class="box">
         <h5>peerconnection</h5>
+
         <button on:click={() => addStream(videoUpstream)} disabled={!Boolean(videoUpstream)}>
-            {#if sender}replaceTrack{:else}addStream{/if}
+            {#if sender}replaceTrack{:else}addTrack{/if}
         </button>
+
+        <button class="btn-small" on:click={() => peerConnection.close()}> close </button>
+
         {#if videoUpstream && videoUpstream.name}
             <small>
                 <code>
@@ -329,7 +349,11 @@
             </small>
         {/if}
 
-        <Transceivers peerconnection={peerConnection} streamSource={() => videoUpstream} />
+        <Transceivers
+            peerconnection={peerConnection}
+            streamSource={() => videoUpstream}
+            on:track={({ detail: track }) => useDownstream({track})}
+        />
     </article>
 
     <article class="box">
@@ -347,7 +371,7 @@
                 </tr>
                 <tr>
                     <th> iceGathering: </th>
-                    <td> <code> {iceGatheringState}</code>
+                    <td> <code> {iceGatheringState}</code> </td>
                 </tr>
                 <tr>
                     <th> iceConnection: </th>
@@ -441,7 +465,7 @@
             {#if $config.isManual}
                 <div>
                     <strong>MANUAL OFFER HERE</strong>
-                    <SdpTextArea rows={20} bind:value={injectedOffer} />
+                    <SdpTextArea {hideSignaling} rows={20} bind:value={injectedOffer} />
                     <br />
                     <label>
                         3.

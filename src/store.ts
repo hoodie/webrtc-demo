@@ -30,6 +30,7 @@ const readConfigFromQuery = () => {
         remote: boolify(queryEntries.remote),
         hideSignaling: boolify(queryEntries.hideSignaling),
         hideEvents: boolify(queryEntries.hideEvents),
+        showTransceivers: boolify(queryEntries.showTransceivers ?? true),
     };
 
     return Object.entries(filledQuery).map(([key, value]) => ({ key, value }))
@@ -47,7 +48,7 @@ export const config = derived(
     $query => {
 
         const config = Object.fromEntries($query.map(({ key, value }) => [key, value]));
-        let { role, stream, manual, remote, hideSignaling, hideEvents, autoSignal } = config;
+        let { role, stream, manual, remote, hideSignaling, hideEvents, showTransceivers, autoSignal } = config;
 
         const hasCaller = role !== 'recv';
         const hasReceiver = role !== 'call' && role !== 'send' || false;
@@ -66,6 +67,7 @@ export const config = derived(
             isManual, isRemote,
             hideSignaling,
             hideEvents,
+            showTransceivers,
             to, from,
         });
 

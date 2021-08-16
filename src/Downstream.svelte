@@ -21,6 +21,6 @@
 </video>
 
 {#if mainTrack}
-    <Details summary="settings" data={mainTrack.getSettings()} />
-    <Details summary="constraints" data={mainTrack.getConstraints()} />
+    <Details summary="settings" data={mainTrack.getSettings()} open={false} />
+    <Details summary="constraints" data={mainTrack.getConstraints()} open={false} />
 {/if}
