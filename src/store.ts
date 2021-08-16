@@ -39,7 +39,7 @@ const readConfigFromQuery = () => {
 export const query = writable(readConfigFromQuery());
 
 export const configUrl = derived(query, $query =>
-    `${window.location.protocol}//${window.location.host}/?${queryStringify($query.map(({ key, value }) => [key, value]))}`
+    `${window.origin}${window.location.pathname}?${queryStringify($query.map(({ key, value }) => [key, value]))}`
 );
 
 export const config = derived(
