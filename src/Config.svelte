@@ -36,7 +36,7 @@
     details[open] {
         border: 1px solid #aaa;
         border-radius: 2px;
-        background-color: white;
+        background-color: var(--body-background);
     }
     details summary {
         font-weight: bolder;

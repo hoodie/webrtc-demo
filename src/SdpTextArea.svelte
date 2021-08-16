@@ -16,13 +16,11 @@
 
 <style>
     textarea {
-        color: gray;
-        padding: 1em;
         font-size: 0.7em;
         font-family: monospace;
         min-width: calc(100% - 1em);
         resize: vertical;
-        box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--form-shadow)
     }
 
     .hideSignaling {

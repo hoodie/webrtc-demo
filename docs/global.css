@@ -2,6 +2,40 @@
 	--video-padding: 0.5em;
 	--video-width: calc(100% - 2 * var(--video-padding));
 }
+  
+@media (prefers-color-scheme: light) {
+	:root{
+		--body-color: black;
+		--body-background: white;
+		--box-background: white;
+		--box-border: #aaa;
+		--box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+		--code-color: #900;
+		--button-color: black;
+		--button-border: 1px solid #ccc;
+		--button-background: #f4f4f4;
+        --form-color: salmon;
+		--form-background: white;
+        --form-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.1);
+	}
+}
+
+@media (prefers-color-scheme: dark) {
+	:root{
+		--body-color: white;
+		--body-background: #333;
+		--box-background: #444;
+		--box-border: #777;
+		--box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4);
+		--code-color: salmon;
+		--button-color: #f4f4f4;
+		--button-border: 1px solid #777;
+		--button-background: black;
+		--form-color: green;
+		--form-background: black;
+        --form-shadow: none
+	}
+}
 
 html, body {
 	position: relative;
@@ -10,7 +44,8 @@ html, body {
 }
 
 body {
-	color: #333;
+	color: var(--body-color);
+	background-color: var(--body-background);
 	margin: 0;
 	padding: 8px;
 	box-sizing: border-box;
@@ -37,7 +72,7 @@ article h5 {
 }
 
 code {
-	color: #900;
+	color: var(--code-color)
 }
 
 h3 small {
@@ -48,20 +83,21 @@ h3 small {
 
 video, canvas {
 	padding: var(--video-padding);
-	border: 1px solid #aaa;
+	border: 1px solid var(--box-border);
 	border-radius: 2px;
-	box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--box-shadow);
 	background-color: black;
 	width: var(--video-width);
 }
 
 .box {
+	background-color: var(--box-background);
 	display: block;
 	padding: 0em 0.5em;
 	margin: 0.6em 1em 1em 0.1em;
-	border: 1px solid #aaa;
+	border: 1px solid var(--box-border);
 	border-radius: 2px;
-	box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--box-shadow);
 }
 
 a {
@@ -86,12 +122,14 @@ textarea {
 }
 
 input, button, select, textarea {
+	color: var(--form-color);
+	background-color: var(--form-background);
 	font-family: inherit;
 	font-size: inherit;
 	padding: 0.4em;
 	margin: 0 0 0.5em 0;
 	box-sizing: border-box;
-	border: 1px solid #ccc;
+	border: var(--button-border);
 	border-radius: 2px;
 }
 
@@ -104,7 +142,8 @@ input[type="range"] {
 }
 
 button {
-	background-color: #f4f4f4;
+	color: var(--button-color);
+	background-color: var(--button-background);
 	outline: none;
 }
 
