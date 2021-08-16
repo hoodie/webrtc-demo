@@ -23,7 +23,7 @@
 </style>
 
 <div>
-    <h1>WebRTC Plumber</h1>
+    <h1>WebRTC Demo</h1>
 
     <aside> <Config /> </aside>
 
