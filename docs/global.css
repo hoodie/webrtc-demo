@@ -156,6 +156,10 @@ button:active {
 	background-color: #ddd;
 }
 
+button:disabled{
+	color: #666;
+}
+
 button:focus {
 	border-color: #666;
 }

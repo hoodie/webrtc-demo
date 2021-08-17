@@ -126,9 +126,7 @@
 <table>
     {#each videoStreams as stream}
         <tr>
-            <td
-                >{#if currentActiveStream === stream}✔️{/if}</td
-            >
+            <td> {#if currentActiveStream === stream}✔️{/if} </td>
             <td> <button on:click={() => makeMainStream(stream)}> {stream.name}</button></td>
             <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
             <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
