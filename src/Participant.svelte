@@ -110,23 +110,23 @@
             useDownstream({ stream, track });
 
             track.addEventListener('ended', () => {
-                addEvent('track ended', 'te');
+                addEvent('te', 'track ended');
                 console.info(`${name} track ended`, { event });
             });
             track.addEventListener('mute', () => {
-                addEvent('track muted', 'mute');
+                addEvent('🔇', 'track muted');
                 console.info(`${name} track muted`, { event });
             });
             track.addEventListener('unmute', () => {
-                addEvent('track unmuted', 'unmute');
+                addEvent('🔈', 'track unmuted');
                 console.info(`${name} track unmuted`, { event });
             });
 
             stream.addEventListener('addtrack', () => {
-                addEvent('stream track added', 'add');
+                addEvent('add', 'stream track added');
             });
             stream.addEventListener('removetrack', () => {
-                addEvent('stream track removed', 'rem');
+                addEvent('rem', 'stream track removed');
             });
         });
 
@@ -146,14 +146,14 @@
             ({ target: { iceGatheringState: state } }: any) => (iceGatheringState = state)
         );
 
-        pc.addEventListener('negotiationneeded', () => addEvent('negotiation needed', 'nn'));
+        pc.addEventListener('negotiationneeded', () => addEvent('nn', 'negotiation needed'));
 
         pc.addEventListener('addstream', (stream) => {
-            addEvent('addstream', '🗑as');
+            addEvent('🗑as', 'addstream');
             console.warn('addstream', stream);
         });
         pc.addEventListener('removestream', (stream) => {
-            addEvent('removestream', '🗑rs');
+            addEvent('🗑rs', 'removestream');
             console.warn('removestream', stream);
         });
 
@@ -283,7 +283,7 @@
         peerConnection = initPeerConnection();
         candidatesStore.subscribe(({ [recipient]: candidate }) => {
             if (candidate) {
-                addEvent('rc');
+                // addEvent('rc');
                 // console.debug(`received candidate by ${name}`, candidate);
             }
         });
