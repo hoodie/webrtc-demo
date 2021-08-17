@@ -131,7 +131,9 @@
         });
 
         pc.addEventListener('icecandidate', ({ candidate }) => {
-            addEvent('lc', 'create candidate');
+            if($config.showCandidateEvents) {
+                addEvent('lc', 'create candidate');
+            }
             rawCandidates = [...rawCandidates, candidate];
             sendCandidate(candidate);
         });
@@ -237,7 +239,7 @@
     function applyCandidates() {
         if ($config.isManual) {
             (parsedInjectedCandidates || []).forEach((c) => {
-                if (c) {
+                if (c && $config.showCandidateEvents) {
                     addEvent('ac', 'addIceCandidate');
                     peerConnection.addIceCandidate(c);
                 }
@@ -245,7 +247,7 @@
         } else {
             console.debug($candidatesStore[recipient]);
             ($candidatesStore[recipient] || []).forEach((c) => {
-                if (c) {
+                if (c && $config.showCandidateEvents) {
                     addEvent('ac', 'addIceCandidate');
                     peerConnection.addIceCandidate(c);
                 }
@@ -254,7 +256,9 @@
     }
 
     async function applyCandidate(candidate: RTCIceCandidate) {
-        addEvent('ac', 'addIceCandidate');
+        if ($config.showCandidateEvents) {
+            addEvent('ac', 'addIceCandidate');
+        }
         await peerConnection.addIceCandidate(candidate);
     }
 
@@ -282,9 +286,8 @@
     onMount(() => {
         peerConnection = initPeerConnection();
         candidatesStore.subscribe(({ [recipient]: candidate }) => {
-            if (candidate) {
-                // addEvent('rc');
-                // console.debug(`received candidate by ${name}`, candidate);
+            if (candidate && $config.showCandidateEvents) {
+                addEvent('rc');
             }
         });
         if ($config.hasCaller) {
