@@ -131,7 +131,7 @@
         });
 
         pc.addEventListener('icecandidate', ({ candidate }) => {
-            if($config.showCandidateEvents) {
+            if ($config.showCandidateEvents) {
                 addEvent('lc', 'create candidate');
             }
             rawCandidates = [...rawCandidates, candidate];
@@ -296,21 +296,6 @@
     });
 </script>
 
-<style>
-    textarea {
-        padding: 1em;
-        font-size: 0.7em;
-        font-family: monospace;
-        min-width: calc(100% - 1em);
-        resize: vertical;
-        box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .hideSignaling {
-        display: none;
-    }
-</style>
-
 <section>
     <h3>
         {name}
@@ -355,149 +340,178 @@
         <Transceivers
             peerconnection={peerConnection}
             streamSource={() => videoUpstream}
-            on:track={({ detail: track }) => useDownstream({track})}
+            on:track={({ detail: track }) => useDownstream({ track })}
         />
     </article>
 
     <article class="box">
-        <h5>signaling</h5>
+        <details open="true">
+            <summary> signaling </summary>
 
-        <div class="box">
-            <table class="vertical">
-                <tr>
-                    <th> signaling: </th>
-                    <td> <code>{signalingState}</code> </td>
-                </tr>
-                <tr>
-                    <th> connection: </th>
-                    <td> <code>{connectionState}</code> </td>
-                </tr>
-                <tr>
-                    <th> iceGathering: </th>
-                    <td> <code> {iceGatheringState}</code> </td>
-                </tr>
-                <tr>
-                    <th> iceConnection: </th>
-                    <td> <code> {iceConnectionState}</code> </td>
-                </tr>
-                {#if !hideEvents}
+            <div class="box">
+                <table class="vertical">
                     <tr>
-                        <th> events: </th>
-                        <td> <code> <small>{events.join(' ')}</small> </code> </td>
+                        <th> signaling: </th>
+                        <td> <code>{signalingState}</code> </td>
                     </tr>
+                    <tr>
+                        <th> connection: </th>
+                        <td> <code>{connectionState}</code> </td>
+                    </tr>
+                    <tr>
+                        <th> iceGathering: </th>
+                        <td> <code> {iceGatheringState}</code> </td>
+                    </tr>
+                    <tr>
+                        <th> iceConnection: </th>
+                        <td> <code> {iceConnectionState}</code> </td>
+                    </tr>
+                    {#if !hideEvents}
+                        <tr>
+                            <th> events: </th>
+                            <td> <code> <small>{events.join(' ')}</small> </code> </td>
+                        </tr>
+                    {/if}
+                </table>
+            </div>
+
+            <div class="box">
+                <span>
+                    <label>
+                        <input type="checkbox" bind:checked={isCaller} />
+                        caller
+                    </label>
+                    <label>
+                        <input type="checkbox" bind:checked={isReceiver} />
+                        receiver
+                    </label>
+                    <label>
+                        <input type="checkbox" bind:checked={autoSignal} />
+                        auto
+                    </label>
+                </span>
+            </div>
+
+            {#if isCaller}
+                {#if autoSignal}
+                    <label>
+                        0.
+                        <button on:click={startCall}>start call</button>
+                    </label>
                 {/if}
-            </table>
-        </div>
 
-        <div class="box">
-            <span>
                 <label>
-                    <input type="checkbox" bind:checked={isCaller} />
-                    caller
+                    1.
+                    <button on:click={createOffer} disabled={autoSignal}>create offer</button>
                 </label>
-                <label>
-                    <input type="checkbox" bind:checked={isReceiver} />
-                    receiver
-                </label>
-                <label>
-                    <input type="checkbox" bind:checked={autoSignal} />
-                    auto
-                </label>
-            </span>
-        </div>
 
-        {#if isCaller}
-            {#if autoSignal}
-                <label>
-                    0.
-                    <button on:click={startCall}>start call</button>
-                </label>
+                {#if localOfferSdp}
+                    <div>
+                        <SdpTextArea {hideSignaling} rows={20} bind:value={localOfferSdp} />
+                        <br />
+                        <label>
+                            2.
+                            <button on:click={() => applyLocal(packOffer(localOfferSdp))} disabled={autoSignal}
+                                >setLocalDescription</button
+                            >
+                            <button on:click={sendOffer} disabled={autoSignal}>send offer</button>
+                        </label>
+                    </div>
+                {/if}
+                {#if receivedAnswer && !$config.isManual}
+                    <div>
+                        <SdpTextArea {hideSignaling} rows={20} bind:value={receivedAnswer} />
+                        <br />
+                        <label>
+                            5.
+                            <button on:click={() => applyRemoteAnswer(receivedAnswer)} disabled={autoSignal}
+                                >setRemoteDescription</button
+                            >
+                        </label>
+                    </div>
+                {/if}
+                {#if $config.isManual}
+                    <div>
+                        <strong>MANUAL ANSWER HERE</strong>
+                        <SdpTextArea {hideSignaling} rows={20} bind:value={injectedAnswer} />
+                        <br />
+                        <label>
+                            5.
+                            <button on:click={() => applyRemoteAnswer(injectedAnswer)} disabled={autoSignal}
+                                >setRemoteDescription</button
+                            >
+                        </label>
+                    </div>
+                {/if}
             {/if}
 
-            <label>
-                1.
-                <button on:click={createOffer} disabled={autoSignal}>create offer</button>
-            </label>
+            {#if isReceiver}
+                {#if receivedOffer && !$config.isManual}
+                    <div>
+                        <SdpTextArea {hideSignaling} rows={20} bind:value={receivedOffer} />
+                        <br />
+                        <label>
+                            3.
+                            <button on:click={() => applyRemoteOffer(receivedOffer)} disabled={autoSignal}
+                                >setRemoteDescription</button
+                            >
+                            <button on:click={createAnswer} disabled={autoSignal}>create answer</button>
+                        </label>
+                    </div>
+                {/if}
+                {#if $config.isManual}
+                    <div>
+                        <strong>MANUAL OFFER HERE</strong>
+                        <SdpTextArea {hideSignaling} rows={20} bind:value={injectedOffer} />
+                        <br />
+                        <label>
+                            3.
+                            <button on:click={() => applyRemoteOffer(injectedOffer)} disabled={autoSignal}
+                                >setRemoteDescription</button
+                            >
+                            <button on:click={createAnswer} disabled={autoSignal}>create answer</button>
+                        </label>
+                    </div>
+                {/if}
+                {#if localAnswerSdp && receivedOffer}
+                    <div>
+                        <SdpTextArea {hideSignaling} rows={20} bind:value={localAnswerSdp} />
+                        <br />
+                        <label>
+                            4.
+                            <button on:click={() => applyLocal(packAnswer(localAnswerSdp))} disabled={autoSignal}
+                                >setLocalDescription</button
+                            >
+                            <button on:click={sendAnswer} disabled={autoSignal}>send answer</button>
+                        </label>
+                    </div>
+                {/if}
+            {/if}
 
-            {#if localOfferSdp}
-                <div>
-                    <SdpTextArea {hideSignaling} rows={20} bind:value={localOfferSdp} />
-                    <br />
-                    <label>
-                        2.
-                        <button on:click={() => applyLocal(packOffer(localOfferSdp))} disabled={autoSignal}>setLocalDescription</button>
-                        <button on:click={sendOffer} disabled={autoSignal}>send offer</button>
-                    </label>
-                </div>
+            {#if readableCandidates.length || $config.isManual}
+                <textarea class:hideSignaling rows="10" bind:value={readableCandidates} />
             {/if}
-            {#if receivedAnswer && !$config.isManual}
-                <div>
-                    <SdpTextArea {hideSignaling} rows={20} bind:value={receivedAnswer} />
-                    <br />
-                    <label>
-                        5.
-                        <button on:click={() => applyRemoteAnswer(receivedAnswer)} disabled={autoSignal}>setRemoteDescription</button>
-                    </label>
-                </div>
-            {/if}
+
             {#if $config.isManual}
-                <div>
-                    <strong>MANUAL ANSWER HERE</strong>
-                    <SdpTextArea {hideSignaling} rows={20} bind:value={injectedAnswer} />
-                    <br />
-                    <label>
-                        5.
-                        <button on:click={() => applyRemoteAnswer(injectedAnswer)} disabled={autoSignal}>setRemoteDescription</button>
-                    </label>
-                </div>
+                <label for="injectedCandidates">injected Candidates</label>
+                <textarea name="injectedCandidates" rows="20" bind:value={injectedCandidates} />
+                <pre>{JSON.stringify(parsedInjectedCandidates, null, 4)}</pre>
             {/if}
-        {/if}
-
-        {#if isReceiver}
-            {#if receivedOffer && !$config.isManual}
-                <div>
-                    <SdpTextArea {hideSignaling} rows={20} bind:value={receivedOffer} />
-                    <br />
-                    <label>
-                        3.
-                        <button on:click={() => applyRemoteOffer(receivedOffer)} disabled={autoSignal}>setRemoteDescription</button>
-                        <button on:click={createAnswer} disabled={autoSignal}>create answer</button>
-                    </label>
-                </div>
-            {/if}
-            {#if $config.isManual}
-                <div>
-                    <strong>MANUAL OFFER HERE</strong>
-                    <SdpTextArea {hideSignaling} rows={20} bind:value={injectedOffer} />
-                    <br />
-                    <label>
-                        3.
-                        <button on:click={() => applyRemoteOffer(injectedOffer)} disabled={autoSignal}>setRemoteDescription</button>
-                        <button on:click={createAnswer} disabled={autoSignal}>create answer</button>
-                    </label>
-                </div>
-            {/if}
-            {#if localAnswerSdp && receivedOffer}
-                <div>
-                    <SdpTextArea {hideSignaling} rows={20} bind:value={localAnswerSdp} />
-                    <br />
-                    <label>
-                        4.
-                        <button on:click={() => applyLocal(packAnswer(localAnswerSdp))} disabled={autoSignal}>setLocalDescription</button>
-                        <button on:click={sendAnswer} disabled={autoSignal}>send answer</button>
-                    </label>
-                </div>
-            {/if}
-        {/if}
-
-        {#if readableCandidates.length || $config.isManual}
-            <textarea class:hideSignaling rows="10" bind:value={readableCandidates} />
-        {/if}
-
-        {#if $config.isManual}
-            <label for="injectedCandidates">injected Candidates</label>
-            <textarea name="injectedCandidates" rows="20" bind:value={injectedCandidates} />
-            <pre>{JSON.stringify(parsedInjectedCandidates, null, 4)}</pre>
-        {/if}
+        </details>
     </article>
 </section>
+
+<style>
+    textarea {
+        padding: 1em;
+        font-size: 0.7em;
+        font-family: monospace;
+        min-width: calc(100% - 1em);
+        resize: vertical;
+        box-shadow: inset 2px 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .hideSignaling {
+        display: none;
+    }
+</style>
