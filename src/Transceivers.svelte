@@ -68,6 +68,9 @@
             });
     }
 
+    const displayOptArray = (optArray: Array<unknown> | undefined) => new Array(optArray).flatMap((elem) => JSON.stringify(elem));
+    const displayTrack = (maybeTrack: MediaStreamTrack | null) => JSON.stringify(maybeTrack?.constructor?.name)
+
     onMount(async () => {
         const interval = setInterval(() => {
             if (transceivers) {
@@ -96,7 +99,7 @@
             <div class="grid box">
                 <strong>mid:</strong> <code>{transceiverDetail.mid}</code>
 
-                {#if transceiverDetail.mid !== null || transceiverDetail.track || true}
+                {#if transceiverDetail.mid !== null || transceiverDetail.track}
                     <div>
                         <table>
                             <tr>
@@ -119,8 +122,56 @@
                                 </tr>
                             {/if}
                         </table>
-                        <Details summary="sender" data={transceiverDetail.sender} open={false} />
-                        <Details summary="receiver" data={transceiverDetail.receiver} open={false} />
+
+                        <hr />
+                        <table>
+                            <tablehead>
+                                <tr> <th colspan="2">sender</th> </tr>
+                            </tablehead>
+
+                            <tr>
+                                <th>track</th>
+                                <td><code>{displayTrack(transceiverDetail.sender.track)}</code></td>
+                            </tr>
+                            <tr>
+                                <th>encodings</th>
+                                <td><code>{displayOptArray(transceiverDetail.sender.parameters.encodings)}</code></td>
+                            </tr>
+                            <tr>
+                                <th>rtcp</th>
+                                <td><code>{displayOptArray(transceiverDetail.sender.parameters.rtcp)}</code></td>
+                            </tr>
+                            <tr>
+                                <th>ssrcs</th>
+                                <td><code>{displayOptArray(transceiverDetail.sender.ssrcs)}</code></td>
+                            </tr>
+                            <tr>
+                                <th>csrcs</th>
+                                <td><code>{displayOptArray(transceiverDetail.sender.csrcs)}</code></td>
+                            </tr>
+                        </table>
+                        <Details summary="verbose" data={transceiverDetail.sender} open={false} />
+
+                        <hr />
+                        <table>
+                            <tablehead>
+                                <tr> <th colspan="2">receiver</th> </tr>
+                            </tablehead>
+                            <tr>
+                                <th>track</th>
+                                <td><code>{displayTrack(transceiverDetail.receiver.track)}</code></td>
+                            </tr>
+                            <tr>
+                                <th>ssrcs</th>
+                                <td><code>{displayOptArray(transceiverDetail.receiver.ssrcs)}</code></td>
+                            </tr>
+                            <tr>
+                                <th>csrcs</th>
+                                <td><code>{displayOptArray(transceiverDetail.receiver.csrcs)}</code></td>
+                            </tr>
+                        </table>
+
+                        <Details summary="verbose" data={transceiverDetail.receiver} open={false} />
                     </div>
 
                     <div>
@@ -149,5 +200,11 @@
 <style>
     .grid {
         flex: grid;
+    }
+    th {
+        text-align: left;
+    }
+    tablehead th {
+        font-size: larger;
     }
 </style>
