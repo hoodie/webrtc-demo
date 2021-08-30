@@ -1,34 +1,26 @@
 <script lang="ts">
-    import { eventLog } from './store';
+    import { onMount } from 'svelte';
 
-    let reversed = true;
-    let length = 80
+    import { addEvent, eventLog } from './store';
 
-    $: shownLog = reversed
-        ? $eventLog.filter((e) => e.event).reverse().slice(0,length)
-        : $eventLog.filter((e) => e.event).slice(0,length);
+    let table;
+    let filterTerm = '';
 
+    $: shownLog =
+        filterTerm && filterTerm.length
+            ? $eventLog.filter(({ event, short, name }) => {
+                  return event?.match(filterTerm) || name?.match(filterTerm) || short?.includes(filterTerm);
+              })
+            : $eventLog;
+
+    onMount(() => {
+        eventLog.subscribe(() => {
+            table.scrollTop = table.scrollHeight;
+        });
+    });
 </script>
 
-<style>
-    table {
-        max-height: 80vh;
-        overflow-y: scroll;
-    }
-    code.timestamp {
-        color: gray;
-        font-size: 0.9em;
-    }
-    input[type=number] {
-        font-size: x-small;
-    }
-    .box {
-        max-height: 400px;
-        overflow-y: scroll;
-    }
-</style>
-
-<section>
+<section id="EventLog">
     <h3>
         Event Log <small>
             please open
@@ -36,15 +28,7 @@
         </small>
     </h3>
 
-    <label for="reverse">
-        <input type="checkbox" name="reverse" id="reverse" bind:checked={reversed} />
-        reversed
-    </label>
-    <label for="reverse">
-        <input type="number" name="length" id="length" bind:value={length} /> of {$eventLog.length}
-    </label>
-
-    <div class="box">
+    <div class="box" bind:this={table}>
         <table class="vertical">
             {#each shownLog as { name, event, timestamp }}
                 <tr>
@@ -55,4 +39,30 @@
             {/each}
         </table>
     </div>
+
+    <label for="filterTerm">
+        <input type="text" name="filterTerm" id="filterTerm" bind:value={filterTerm} placeholder="filter" />
+    </label>
 </section>
+
+<style>
+    table {
+        max-height: 80vh;
+        overflow-y: scroll;
+    }
+    code.timestamp {
+        color: gray;
+        font-size: 0.9em;
+    }
+    input#filterTerm {
+        font-size: x-small;
+        margin: 0 auto;
+        width: 100%;
+    }
+    .box {
+        margin: 0 auto;
+        height: 400px;
+        max-height: 400px;
+        overflow-y: scroll;
+    }
+</style>

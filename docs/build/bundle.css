@@ -1,9 +1,9 @@
-details.svelte-6741wn.svelte-6741wn{position:absolute;width:80vw;z-index:10;padding:0em 0.5em}details[open].svelte-6741wn.svelte-6741wn{border:1px solid #aaa;border-radius:2px;background-color:var(--body-background)}details.svelte-6741wn summary.svelte-6741wn{font-weight:bolder;float:right}details.svelte-6741wn>summary.svelte-6741wn::before{content:'⚙️️'}details[open].svelte-6741wn>summary.svelte-6741wn::before{content:'⚙️️'}
+details.svelte-rc03x9.svelte-rc03x9{position:absolute;width:80vw;z-index:10;padding:0em 0.5em}details[open].svelte-rc03x9.svelte-rc03x9{border:1px solid #aaa;border-radius:2px;background-color:var(--body-background)}details.svelte-rc03x9 summary.svelte-rc03x9{font-weight:bolder;float:right}details.svelte-rc03x9>summary.svelte-rc03x9::before{content:'⚙️️'}details[open].svelte-rc03x9>summary.svelte-rc03x9::before{content:'⚙️ ️'}
 nav.svelte-vk2oy1{display:block}button.svelte-vk2oy1{font-size:small;display:inline}video.svelte-vk2oy1{transform:scale(-1, 1)}
 .grid.svelte-1ycjrzf.svelte-1ycjrzf{flex:grid}th.svelte-1ycjrzf.svelte-1ycjrzf{text-align:left}tablehead.svelte-1ycjrzf th.svelte-1ycjrzf{font-size:larger}
 textarea.svelte-cn7s01{font-size:0.7em;font-family:monospace;min-width:calc(100% - 1em);resize:vertical;box-shadow:var(--form-shadow)
     }.hideSignaling.svelte-cn7s01{display:none}
 textarea.svelte-3b0r9n{padding:1em;font-size:0.7em;font-family:monospace;min-width:calc(100% - 1em);resize:vertical;box-shadow:inset 2px 2px 8px rgba(0, 0, 0, 0.1)}.hideSignaling.svelte-3b0r9n{display:none}
-table.svelte-944373{max-height:80vh;overflow-y:scroll}code.timestamp.svelte-944373{color:gray;font-size:0.9em}input[type=number].svelte-944373{font-size:x-small}.box.svelte-944373{max-height:400px;overflow-y:scroll}
+table.svelte-1io0inb{max-height:80vh;overflow-y:scroll}code.timestamp.svelte-1io0inb{color:gray;font-size:0.9em}input#filterTerm.svelte-1io0inb{font-size:x-small;margin:0 auto;width:100%}.box.svelte-1io0inb{margin:0 auto;height:400px;max-height:400px;overflow-y:scroll}
 main.svelte-if8jgd{display:flex;grid-template-columns:1fr 1fr 1fr}div.svelte-if8jgd{padding:1em}aside.svelte-if8jgd{height:20px}
 nav.svelte-2jsuhx{display:block}button.svelte-2jsuhx{font-size:small}

@@ -8,20 +8,24 @@
         <table>
             {#each $query as { key, value }}
                 <tr>
-                    <td>{key}</td>
-                    <td>
-                        {#if typeof value === 'boolean'}
-                            <input type="checkbox" bind:checked={value} />
-                        {:else}
+                    {#if typeof value === 'boolean'}
+                        <td colspan="2">
+                            <label for={key}>
+                                <input type="checkbox" bind:checked={value} id={key} />
+                                {key}
+                            </label>
+                        </td>
+                    {:else}
+                        <td>{key} </td>
+                        <td>
                             <input type="text" bind:value />
-                        {/if}
-                    </td>
+                        </td>
+                    {/if}
                 </tr>
             {/each}
         </table>
 
         <code><pre> <a href={$configUrl}>{$configUrl}</a> </pre> </code>
-
     </div>
 </details>
 
@@ -48,6 +52,6 @@
     }
 
     details[open] > summary::before {
-        content: '⚙️️';
+        content: '⚙️ ️';
     }
 </style>
