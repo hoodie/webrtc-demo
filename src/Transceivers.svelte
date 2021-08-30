@@ -2,6 +2,9 @@
     import { onMount, tick, createEventDispatcher } from 'svelte';
     import Details from './Details.svelte';
     import { config } from './store';
+    import RtpReceiver from './views/RtpReceiver.svelte';
+    import RtpSender from './views/RtpSender.svelte';
+    import Track from './views/Track.svelte';
 
     export let peerconnection: RTCPeerConnection;
     export let streamSource: (() => MediaStream | undefined) | undefined;
@@ -29,47 +32,10 @@
     }
 
     function updateDetails() {
-        transceiverDetails =
-            peerconnection &&
-            peerconnection.getTransceivers().map((transceiver) => {
-                const { mid, direction, currentDirection, sender, receiver } = transceiver;
-                let senderDetails = {};
-                let receiverDetails = {};
-                {
-                    let { dtmf, track, transport } = sender;
-                    senderDetails = {
-                        dtmf,
-                        track,
-                        transport,
-                        parameters: sender.getParameters && sender.getParameters(),
-                    };
-                }
-                {
-                    let { dtmf, track, transport } = receiver;
-                    receiverDetails = {
-                        dtmf,
-                        track,
-                        transport,
-                        parameters: receiver.getParameters && receiver.getParameters(),
-                        csrcs: receiver.getContributingSources(),
-                        ssrcs: receiver.getSynchronizationSources(),
-                    };
-                }
-                return [
-                    transceiver,
-                    {
-                        mid,
-                        direction,
-                        currentDirection,
-                        sender: senderDetails,
-                        receiver: receiverDetails,
-                    },
-                ];
-            });
+        transceiverDetails = peerconnection && peerconnection.getTransceivers();
     }
 
     const displayOptArray = (optArray: Array<unknown> | undefined) => new Array(optArray).flatMap((elem) => JSON.stringify(elem));
-    const displayTrack = (maybeTrack: MediaStreamTrack | null) => JSON.stringify(maybeTrack?.constructor?.name)
 
     onMount(async () => {
         const interval = setInterval(() => {
@@ -91,87 +57,51 @@
 
 <details open={Boolean($config.showTransceivers)}>
     <summary>
-        <strong> transceivers</strong>
+        <h5>transceivers</h5>
     </summary>
 
     {#if transceiverDetails}
-        {#each transceiverDetails as [transceiver, transceiverDetail]}
+        {#each transceiverDetails as transceiver}
             <div class="grid box">
-                <strong>mid:</strong> <code>{transceiverDetail.mid}</code>
-
-                {#if transceiverDetail.mid !== null || transceiverDetail.track}
+                {#if transceiver.mid !== null || transceiver.track || true}
                     <div>
-                        <table>
+                        <table class="vertical">
+                            <tr>
+                                <th>mid</th>
+                                <td>
+                                    <code>{transceiver.mid}</code>
+                                </td>
+                            </tr>
                             <tr>
                                 <th>direction</th>
                                 <td>
-                                    <strong> <code>{transceiverDetail.currentDirection}</code> </strong>
-                                    <em> <code>({transceiverDetail.direction})</code> </em>
                                     <select on:change={({ target }) => (transceiver.direction = target.value)}>
                                         {#each ['sendrecv', 'sendonly', 'recvonly', 'inactive'] as value}
-                                            <option {value} selected={value === transceiver.currentDirection}>{value}</option>
+                                            <option
+                                                {value}
+                                                selected={value === transceiver.currentDirection ||
+                                                    (value === 'inactive' && transceiver.currentDirection === null)}
+                                                >{value}</option
+                                            >
                                         {/each}
                                     </select>
+                                    <strong> → <code>{transceiver.currentDirection}</code> </strong>
                                 </td>
                             </tr>
 
                             {#if trackMap.has(transceiver)}
                                 <tr>
                                     <th>track</th>
-                                    <td><code>{trackMap.has(transceiver) && trackMap.get(transceiver)}</code></td>
+                                    <td> <Track track={trackMap.get(transceiver)} /> </td>
                                 </tr>
                             {/if}
                         </table>
 
                         <hr />
-                        <table>
-                            <tablehead>
-                                <tr> <th colspan="2">sender</th> </tr>
-                            </tablehead>
-
-                            <tr>
-                                <th>track</th>
-                                <td><code>{displayTrack(transceiverDetail.sender.track)}</code></td>
-                            </tr>
-                            <tr>
-                                <th>encodings</th>
-                                <td><code>{displayOptArray(transceiverDetail.sender.parameters.encodings)}</code></td>
-                            </tr>
-                            <tr>
-                                <th>rtcp</th>
-                                <td><code>{displayOptArray(transceiverDetail.sender.parameters.rtcp)}</code></td>
-                            </tr>
-                            <tr>
-                                <th>ssrcs</th>
-                                <td><code>{displayOptArray(transceiverDetail.sender.ssrcs)}</code></td>
-                            </tr>
-                            <tr>
-                                <th>csrcs</th>
-                                <td><code>{displayOptArray(transceiverDetail.sender.csrcs)}</code></td>
-                            </tr>
-                        </table>
-                        <Details summary="verbose" data={transceiverDetail.sender} open={false} />
+                        <RtpSender sender={transceiver.sender} />
 
                         <hr />
-                        <table>
-                            <tablehead>
-                                <tr> <th colspan="2">receiver</th> </tr>
-                            </tablehead>
-                            <tr>
-                                <th>track</th>
-                                <td><code>{displayTrack(transceiverDetail.receiver.track)}</code></td>
-                            </tr>
-                            <tr>
-                                <th>ssrcs</th>
-                                <td><code>{displayOptArray(transceiverDetail.receiver.ssrcs)}</code></td>
-                            </tr>
-                            <tr>
-                                <th>csrcs</th>
-                                <td><code>{displayOptArray(transceiverDetail.receiver.csrcs)}</code></td>
-                            </tr>
-                        </table>
-
-                        <Details summary="verbose" data={transceiverDetail.receiver} open={false} />
+                        <RtpReceiver receiver={transceiver.receiver} />
                     </div>
 
                     <div>
@@ -203,8 +133,5 @@
     }
     th {
         text-align: left;
-    }
-    tablehead th {
-        font-size: larger;
     }
 </style>

@@ -1,15 +1,15 @@
 <script lang="ts">
     import Details from './Details.svelte';
     import { onMount, createEventDispatcher } from 'svelte';
+    import Track from './views/Track.svelte';
+    import Stream from './views/Stream.svelte';
     const dispatch = createEventDispatcher();
 
     let upstreamVideo;
     let currentActiveStream;
-    $: mainTrack = currentActiveStream && currentActiveStream.getTracks()[0];
-    $: upstreamName = currentActiveStream && currentActiveStream.constructor.name;
-    $: upstreamTrackName = currentActiveStream && currentActiveStream.getTracks()[0].constructor.name;
-    $: upstreamCanvas = currentActiveStream && currentActiveStream.canvas;
-    $: upstreamTrackCanvas = currentActiveStream && currentActiveStream.getTracks()[0].canvas;
+    $: mainTrack = currentActiveStream?.getTracks()[0];
+    $: upstreamName = currentActiveStream?.constructor.name;
+    $: upstreamTrack = currentActiveStream?.getTracks()[0];
 
     const isCanvasCaptureStream = (mediaStream?: MediaStream): boolean =>
         mediaStream?.constructor.name === 'CanvasCaptureMediaStream' ||
@@ -93,19 +93,6 @@
     });
 </script>
 
-<style>
-    nav {
-        display: block;
-    }
-    button {
-        font-size: small;
-        display: inline;
-    }
-    video {
-        transform: scale(-1, 1);
-    }
-</style>
-
 <h5>upstream</h5>
 
 <video id="upstream" bind:this={upstreamVideo} autoplay="true">
@@ -126,25 +113,33 @@
 <table>
     {#each videoStreams as stream}
         <tr>
-            <td> {#if currentActiveStream === stream}✔️{/if} </td>
+            <td>
+                {#if currentActiveStream === stream}✔️{/if}
+            </td>
             <td> <button on:click={() => makeMainStream(stream)}> {stream.name}</button></td>
             <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
             <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
-            <td> {#if isCanvasCaptureStream(stream)} (canvas) {/if}</td>
+            <td>
+                {#if isCanvasCaptureStream(stream)} (canvas) {/if}</td
+            >
         </tr>
     {/each}
 </table>
 
-{#if mainTrack}
-    <details>
-        <summary> {upstreamName} / {upstreamTrackName} / {upstreamCanvas}/ {upstreamTrackCanvas} </summary>
-
-        <dl>
-            <dt>readState</dt>
-            <dd>{mainTrack.readyState}</dd>
-        </dl>
-
-        <Details summary="settings" data={mainTrack.getSettings()} />
-        <Details summary="constraints" data={mainTrack.getConstraints()} />
-    </details>
+{#if currentActiveStream}
+<h5>current stream</h5>
+    <Stream stream={currentActiveStream} />
 {/if}
+
+<style>
+    nav {
+        display: block;
+    }
+    button {
+        font-size: small;
+        display: inline;
+    }
+    video {
+        transform: scale(-1, 1);
+    }
+</style>

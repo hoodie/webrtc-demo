@@ -19,6 +19,8 @@
     import RemoteBar from './RemoteBar.svelte';
     import Transceivers from './Transceivers.svelte';
     import SdpTextArea from './SdpTextArea.svelte';
+    import RtpSender from './views/RtpSender.svelte';
+    import RtpReceiver from './views/RtpReceiver.svelte';
 
     export let isCaller = false;
     export let isReceiver = false;
@@ -39,6 +41,10 @@
 
     let peerConnection: RTCPeerConnection;
     let sender: RTCRtpSender;
+    let senders: RTCRtpSender[] = [];
+    let receivers: RTCRtpReceiver[] = [];
+    let rtcConfiguration: RTCConfiguration;
+
     let videoUpstream: MediaStream & { name?: string };
 
     let signalingState = '';
@@ -85,15 +91,12 @@
     let injectedCandidates = '';
     $: parsedInjectedCandidates = safeParse(injectedCandidates);
 
-    let pcconfig = (() =>
-        new URL(document.location.toString()).searchParams.get('semantic') === 'plan-b'
-            ? { sdpSemantics: 'plan-b' }
-            : { sdpSemantics: 'unified-plan' })();
+    const sdpSemantics = new URL(document.location.toString()).searchParams.get('sdpSemantics') ?? 'unified-plan';
+
+    const pcConfig: RTCConfiguration & { sdpSemantics: string } = { sdpSemantics } as any;
 
     function initPeerConnection() {
-        pcconfig.sdpSemantics === 'unified-plan';
-
-        const pc = new RTCPeerConnection(pcconfig as any);
+        const pc = new RTCPeerConnection(pcConfig);
 
         pc.addEventListener('track', (event) => {
             addEvent('pct', 'pc ontrack');
@@ -151,15 +154,15 @@
         pc.addEventListener('negotiationneeded', () => addEvent('nn', 'negotiation needed'));
 
         pc.addEventListener('addstream', (stream) => {
-            addEvent('🗑as', 'addstream');
+            addEvent('as', 'addstream');
             console.warn('addstream', stream);
         });
         pc.addEventListener('removestream', (stream) => {
-            addEvent('🗑rs', 'removestream');
+            addEvent('rs', 'removestream');
             console.warn('removestream', stream);
         });
 
-        console.info(`setup RTCPeerConnection for ${name}`, pcconfig, pc);
+        console.info(`setup RTCPeerConnection for ${name}`, pcConfig, pc);
         return pc;
     }
 
@@ -173,6 +176,16 @@
             console.info('add track');
             sender = peerConnection.addTrack(stream.getTracks()[0], stream);
         }
+    }
+
+    function removeStream() {
+        (peerConnection as any).removeStream(videoUpstream);
+        sender = undefined;
+    }
+
+    function removeTrack() {
+        peerConnection.removeTrack(sender);
+        sender = undefined;
     }
 
     async function startCall() {
@@ -293,6 +306,19 @@
         if ($config.hasCaller) {
             createOffer();
         }
+
+        const updatePeerConnectionStuff = () => {
+            senders = peerConnection.getSenders();
+            receivers = peerConnection.getReceivers();
+            rtcConfiguration = peerConnection.getConfiguration();
+        };
+
+        updatePeerConnectionStuff();
+        const interval = setInterval(() => {
+            updatePeerConnectionStuff();
+        }, 500);
+
+        return () => clearInterval(interval);
     });
 </script>
 
@@ -321,11 +347,33 @@
     {/if}
 
     <article class="box">
-        <h5>peerconnection</h5>
+        <details open={sdpSemantics == 'plan-b'}>
+            <summary>
+                <h4>
+                    <abbr title={JSON.stringify(rtcConfiguration, null, 4)}> peerconnection </abbr>
+                </h4>
+                {#if pcConfig.sdpSemantics === 'plan-b'}
+                    <span class="warning">plan-b</span>
+                {/if}
+            </summary>
+            {#each senders as sender}
+                <RtpSender {sender} open={true} />
+            {/each}
+            {#each receivers as receiver}
+                <RtpReceiver {receiver} open={true} />
+            {/each}
+        </details>
 
         <button on:click={() => addStream(videoUpstream)} disabled={!Boolean(videoUpstream)}>
             {#if sender}replaceTrack{:else}addTrack{/if}
         </button>
+
+        {#if sender}
+            <button on:click={() => removeStream()} disabled={!Boolean(videoUpstream)}>
+                <strike> removeStream </strike>
+            </button>
+            <button on:click={() => removeTrack()} disabled={!Boolean(videoUpstream)}> removeTrack </button>
+        {/if}
 
         <button class="btn-small" on:click={() => peerConnection.close()}> close </button>
 
@@ -337,16 +385,18 @@
             </small>
         {/if}
 
-        <Transceivers
-            peerconnection={peerConnection}
-            streamSource={() => videoUpstream}
-            on:track={({ detail: track }) => useDownstream({ track })}
-        />
+        {#if sdpSemantics === 'unified-plan'}
+            <Transceivers
+                peerconnection={peerConnection}
+                streamSource={() => videoUpstream}
+                on:track={({ detail: track }) => useDownstream({ track })}
+            />
+        {/if}
     </article>
 
     <article class="box">
         <details open="true">
-            <summary> signaling </summary>
+            <summary> <h4>signaling</h4> </summary>
 
             <div class="box">
                 <table class="vertical">
@@ -513,5 +563,8 @@
 
     .hideSignaling {
         display: none;
+    }
+    .warning {
+        color: red;
     }
 </style>

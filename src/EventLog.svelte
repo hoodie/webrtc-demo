@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
 
-    import { addEvent, eventLog } from './store';
+    import { eventLog } from './store';
 
     let table;
     let filterTerm = '';
@@ -49,6 +49,7 @@
     table {
         max-height: 80vh;
         overflow-y: scroll;
+        padding-bottom: 2em;
     }
     code.timestamp {
         color: gray;
