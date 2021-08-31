@@ -40,7 +40,7 @@
     $: events = $eventLogByName[name] || [];
 
     let peerConnection: RTCPeerConnection;
-    let sender: RTCRtpSender;
+    let mainSender: RTCRtpSender;
     let senders: RTCRtpSender[] = [];
     let receivers: RTCRtpReceiver[] = [];
     let rtcConfiguration: RTCConfiguration;
@@ -166,26 +166,26 @@
         return pc;
     }
 
-    function addStream(stream) {
-        if (sender) {
-            addEvent('rt', 'replace track');
-            console.info('replace track', { sender });
-            sender.replaceTrack(stream.getTracks()[0]);
-        } else {
-            addEvent('at', 'add track');
-            console.info('add track');
-            sender = peerConnection.addTrack(stream.getTracks()[0], stream);
-        }
+    function addTrack(stream: MediaStream) {
+        addEvent('at', 'add track');
+        console.info('add track');
+        mainSender = peerConnection.addTrack(stream.getTracks()[0], stream);
+    }
+
+    function replaceTrack(stream: MediaStream, sender: RTCRtpSender) {
+        addEvent('rt', 'replace track');
+        console.info('replace track', { sender });
+        sender.replaceTrack(stream.getTracks()[0]);
     }
 
     function removeStream() {
         (peerConnection as any).removeStream(videoUpstream);
-        sender = undefined;
+        mainSender = undefined;
     }
 
     function removeTrack() {
-        peerConnection.removeTrack(sender);
-        sender = undefined;
+        peerConnection.removeTrack(mainSender);
+        mainSender = undefined;
     }
 
     async function startCall() {
@@ -357,18 +357,24 @@
                 {/if}
             </summary>
             {#each senders as sender}
-                <RtpSender {sender} open={true} />
+                <RtpSender
+                    {sender}
+                    open={true}
+                    mediaStream={videoUpstream}
+                    onRemove={(sender) => peerConnection.removeTrack(sender)}
+                />
             {/each}
             {#each receivers as receiver}
                 <RtpReceiver {receiver} open={true} />
             {/each}
         </details>
 
-        <button on:click={() => addStream(videoUpstream)} disabled={!Boolean(videoUpstream)}>
-            {#if sender}replaceTrack{:else}addTrack{/if}
-        </button>
+        <button on:click={() => addTrack(videoUpstream)} disabled={!Boolean(videoUpstream)}> addTrack </button>
+        {#if mainSender}
+            <button on:click={() => replaceTrack(videoUpstream, mainSender)} disabled={!Boolean(videoUpstream)}>
+                replaceTrack
+            </button>
 
-        {#if sender}
             <button on:click={() => removeStream()} disabled={!Boolean(videoUpstream)}>
                 <strike> removeStream </strike>
             </button>

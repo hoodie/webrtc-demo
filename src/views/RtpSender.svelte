@@ -1,12 +1,21 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import Details from '../Details.svelte';
+    import { addEvent } from '../store';
     import DtlsTransport from './DtlsTransport.svelte';
 
     import Track from './Track.svelte';
 
     export let sender: RTCRtpSender;
     export let open = false;
+    export let mediaStream: MediaStream | undefined = undefined;
+    export let onRemove: Function = () => console.warn('no callback');
+
+    function replaceTrack(stream: MediaStream, sender: RTCRtpSender) {
+        addEvent('rts', 'replace track per sender');
+        console.info('replace track', { sender });
+        sender.replaceTrack(stream.getTracks()[0]);
+    }
 
     let parameters;
     onMount(() => {
@@ -47,6 +56,10 @@
                     </tr>
                 {/if}
             </table>
+            <button class="btn-small" on:click={() => replaceTrack(mediaStream, sender)} disabled={!Boolean(mediaStream)}>
+                replaceTrack
+            </button>
+            <button class="btn-small" on:click={() => onRemove(sender)}> remove </button>
         {/if}
     </details>
 {/if}
