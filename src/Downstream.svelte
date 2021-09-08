@@ -1,5 +1,6 @@
 <script lang="ts">
     import Details from './Details.svelte';
+import Track from './views/Track.svelte';
     export let stream: MediaStream | undefined;
 
     let videoTag: HTMLVideoElement;
@@ -20,7 +21,7 @@
     <track kind="captions" />
 </video>
 
+
 {#if mainTrack}
-    <Details summary="settings" data={mainTrack.getSettings()} open={false} />
-    <Details summary="constraints" data={mainTrack.getConstraints()} open={false} />
+    <Track track={mainTrack} />
 {/if}

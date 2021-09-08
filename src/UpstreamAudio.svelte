@@ -1,6 +1,9 @@
 <script lang="ts">
     import { onMount, createEventDispatcher } from 'svelte';
     import { renderFloatBars, renderVolume, renderWaveForm } from './visualizers';
+
+    export let open;
+
     const dispatch = createEventDispatcher();
 
     let upstreamAudio: HTMLAudioElement;
@@ -116,37 +119,41 @@
     });
 </script>
 
-<h5>audio devices</h5>
+<details bind:open>
+    <summary>
+        <h5>audio</h5>
+    </summary>
 
-<canvas bind:this={canvas} />
+    <canvas bind:this={canvas} />
 
-<nav>
-    {#each audioDevices as device, index}
-        <button on:click={() => getAudioStream(device.deviceId)}>
-            {device.label || `micorophone ${index}`}
-        </button>
-    {/each}
-    <audio id="upstream" bind:this={upstreamAudio} autoplay={false} controls={Boolean(currentActiveStream)}>
-        <track kind="captions" />
-    </audio>
-</nav>
+    <nav>
+        {#each audioDevices as device, index}
+            <button on:click={() => getAudioStream(device.deviceId)}>
+                {device.label || `micorophone ${index}`}
+            </button>
+        {/each}
+        <audio id="upstream" bind:this={upstreamAudio} autoplay={false} controls={Boolean(currentActiveStream)}>
+            <track kind="captions" />
+        </audio>
+    </nav>
 
-<button on:click={() => initRendererBars()}>bars</button>
-<button on:click={() => initRendererWaveForm()}>waveform</button>
-<button on:click={() => initRendererVolume()}>volume</button>
+    <button on:click={() => initRendererBars()}>bars</button>
+    <button on:click={() => initRendererWaveForm()}>waveform</button>
+    <button on:click={() => initRendererVolume()}>volume</button>
 
-<table>
-    {#each audioStreams as stream}
-        <tr>
-            <td
-                >{#if currentActiveStream === stream}✔️{/if}</td
-            >
-            <td> <button on:click={() => makeMainStream(stream)}> {stream['name']}</button></td>
-            <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
-            <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
-        </tr>
-    {/each}
-</table>
+    <table>
+        {#each audioStreams as stream}
+            <tr>
+                <td>
+                    {#if currentActiveStream === stream}✔️{/if}
+                </td>
+                <td> <button on:click={() => makeMainStream(stream)}> {stream['name']}</button></td>
+                <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
+                <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
+            </tr>
+        {/each}
+    </table>
+</details>
 
 <style>
     nav {

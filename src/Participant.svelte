@@ -21,6 +21,8 @@
     import SdpTextArea from './SdpTextArea.svelte';
     import RtpSender from './views/RtpSender.svelte';
     import RtpReceiver from './views/RtpReceiver.svelte';
+    import UpstreamAudio from './UpstreamAudio.svelte';
+    import Stream from './views/Stream.svelte';
 
     export let isCaller = false;
     export let isReceiver = false;
@@ -45,7 +47,7 @@
     let receivers: RTCRtpReceiver[] = [];
     let rtcConfiguration: RTCConfiguration;
 
-    let videoUpstream: MediaStream & { name?: string };
+    let selectedUpstream: MediaStream & { name?: string };
 
     let signalingState = '';
     let connectionState = '';
@@ -179,7 +181,7 @@
     }
 
     function removeStream() {
-        (peerConnection as any).removeStream(videoUpstream);
+        (peerConnection as any).removeStream(selectedUpstream);
         mainSender = undefined;
     }
 
@@ -334,8 +336,14 @@
     {#if $config.hasUpstream}
         <article id="upstream" class="box">
             <UpstreamVideo
-                on:stream={({ detail: stream }) => (videoUpstream = stream)}
-                on:stop={() => (videoUpstream = undefined)}
+                on:stream={({ detail: stream }) => (selectedUpstream = stream)}
+                on:stop={() => (selectedUpstream = undefined)}
+                open={true}
+            />
+            <UpstreamAudio
+                on:stream={({ detail: stream }) => (selectedUpstream = stream)}
+                on:stop={() => (selectedUpstream = undefined)}
+                open={false}
             />
         </article>
     {/if}
@@ -347,6 +355,15 @@
     {/if}
 
     <article class="box">
+        <small>
+            <strong> selected upstream </strong>
+
+            {#if selectedUpstream}
+                <Stream stream={selectedUpstream} />
+            {/if}
+        </small>
+        <hr />
+
         <details open={sdpSemantics == 'plan-b'}>
             <summary>
                 <h4>
@@ -360,7 +377,7 @@
                 <RtpSender
                     {sender}
                     open={true}
-                    mediaStream={videoUpstream}
+                    mediaStream={selectedUpstream}
                     onRemove={(sender) => peerConnection.removeTrack(sender)}
                 />
             {/each}
@@ -369,32 +386,24 @@
             {/each}
         </details>
 
-        <button on:click={() => addTrack(videoUpstream)} disabled={!Boolean(videoUpstream)}> addTrack </button>
+        <button on:click={() => addTrack(selectedUpstream)} disabled={!Boolean(selectedUpstream)}> addTrack </button>
         {#if mainSender}
-            <button on:click={() => replaceTrack(videoUpstream, mainSender)} disabled={!Boolean(videoUpstream)}>
+            <button on:click={() => replaceTrack(selectedUpstream, mainSender)} disabled={!Boolean(selectedUpstream)}>
                 replaceTrack
             </button>
 
-            <button on:click={() => removeStream()} disabled={!Boolean(videoUpstream)}>
+            <button on:click={() => removeStream()} disabled={!Boolean(selectedUpstream)}>
                 <strike> removeStream </strike>
             </button>
-            <button on:click={() => removeTrack()} disabled={!Boolean(videoUpstream)}> removeTrack </button>
+            <button on:click={() => removeTrack()} disabled={!Boolean(selectedUpstream)}> removeTrack </button>
         {/if}
 
         <button class="btn-small" on:click={() => peerConnection.close()}> close </button>
 
-        {#if videoUpstream && videoUpstream.name}
-            <small>
-                <code>
-                    <pre>{videoUpstream.name}</pre>
-                </code>
-            </small>
-        {/if}
-
         {#if sdpSemantics === 'unified-plan'}
             <Transceivers
                 peerconnection={peerConnection}
-                streamSource={() => videoUpstream}
+                streamSource={() => selectedUpstream}
                 on:track={({ detail: track }) => useDownstream({ track })}
             />
         {/if}

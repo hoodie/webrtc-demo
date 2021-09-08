@@ -8,12 +8,14 @@
     <details>
         <summary>
             {track.constructor.name}
+            <strong> {track.kind} </strong>
             {#if width} | {width}x{height} {/if}
             | {track.readyState}
             | {track.muted ? 'muted' : 'unmuted'}
         </summary>
         <pre>{JSON.stringify({
             id: track.id,
+            kind: track.kind,
             settings: track.getSettings(),
             constraints: track.getConstraints()
         }, null, 4)}</pre>

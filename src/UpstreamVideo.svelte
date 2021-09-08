@@ -3,6 +3,9 @@
     import { onMount, createEventDispatcher } from 'svelte';
     import Track from './views/Track.svelte';
     import Stream from './views/Stream.svelte';
+
+    export let open;
+
     const dispatch = createEventDispatcher();
 
     let upstreamVideo;
@@ -93,43 +96,47 @@
     });
 </script>
 
-<h5>upstream</h5>
+<details bind:open>
+    <summary>
+        <h5>video</h5>
+    </summary>
 
-<video id="upstream" bind:this={upstreamVideo} autoplay="true">
-    <track kind="captions" />
-</video>
+    <video id="upstream" bind:this={upstreamVideo} autoplay="true">
+        <track kind="captions" />
+    </video>
 
-<nav>
-    <button on:click={() => getWebcam()}>default</button>
-    <button on:click={() => getNoise()}>noise</button>
-    <br />
-    {#each videoDevices as device, index}
-        <button on:click={() => getWebcam(device.deviceId)}>
-            {device.label || `camera ${index}`}
-        </button>
-    {/each}
-</nav>
+    <nav>
+        <button on:click={() => getWebcam()}>default</button>
+        <button on:click={() => getNoise()}>noise</button>
+        <br />
+        {#each videoDevices as device, index}
+            <button on:click={() => getWebcam(device.deviceId)}>
+                {device.label || `camera ${index}`}
+            </button>
+        {/each}
+    </nav>
 
-<table>
-    {#each videoStreams as stream}
-        <tr>
-            <td>
-                {#if currentActiveStream === stream}✔️{/if}
-            </td>
-            <td> <button on:click={() => makeMainStream(stream)}> {stream.name}</button></td>
-            <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
-            <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
-            <td>
-                {#if isCanvasCaptureStream(stream)} (canvas) {/if}</td
-            >
-        </tr>
-    {/each}
-</table>
+    <table>
+        {#each videoStreams as stream}
+            <tr>
+                <td>
+                    {#if currentActiveStream === stream}✔️{/if}
+                </td>
+                <td> <button on:click={() => makeMainStream(stream)}> {stream.name}</button></td>
+                <td> <button on:click={() => stopStream(stream)}>stop</button> </td>
+                <td> <button on:click={() => deleteStream(stream)}>X</button> </td>
+                <td>
+                    {#if isCanvasCaptureStream(stream)} (canvas) {/if}</td
+                >
+            </tr>
+        {/each}
+    </table>
 
-{#if currentActiveStream}
-<h5>current stream</h5>
-    <Stream stream={currentActiveStream} />
-{/if}
+    {#if currentActiveStream}
+        <h5>current stream</h5>
+        <Stream stream={currentActiveStream} />
+    {/if}
+</details>
 
 <style>
     nav {
