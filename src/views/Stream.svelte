@@ -4,7 +4,9 @@
     import Track from './Track.svelte';
 
     export let stream: MediaStream;
+
     let active = stream?.active;
+
     onMount(() => {
         const interval = setInterval(() => {
             active = stream?.active;
