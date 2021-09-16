@@ -11,9 +11,9 @@
     let capabilities: MediaTrackCapabilities;
     onMount(() => {
         const interval = setInterval(() => {
-            settings = track?.getSettings();
-            constraints = track?.getConstraints();
-            capabilities = track?.getCapabilities();
+            settings = track?.getSettings?.();
+            constraints = track?.getConstraints?.();
+            capabilities = track?.getCapabilities?.();
         }, 500);
         return () => clearInterval(interval);
     });
