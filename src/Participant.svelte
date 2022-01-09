@@ -538,7 +538,7 @@
                         </label>
                     </div>
                 {/if}
-                {#if localAnswerSdp && receivedOffer}
+                {#if localAnswerSdp }
                     <div>
                         <SdpTextArea {hideSignaling} rows={20} bind:value={localAnswerSdp} />
                         <br />
