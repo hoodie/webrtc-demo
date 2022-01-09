@@ -70,7 +70,7 @@ module.exports = {
 	devServer: {
 		hot: true,
 		host: '0.0.0.0' ,
-		disableHostCheck: true,
+		static: path.resolve(__dirname, 'docs'),
 		proxy: {
 		  '/signaling': {
 			 target: `ws://localhost:${config.signalingServer.port}`,
