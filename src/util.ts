@@ -4,12 +4,12 @@ export const justTheSdp = thing =>
     : typeof thing === 'object'
     ? thing.sdp : undefined;
 
-export const safeParse = json => {
+export const safeParse = <T>(json: string, fallback: T): T => {
     try {
         return JSON.parse(json);
     } catch (parseError) {
         if (json !== '') console.warn({ parseError });
-        return [];
+        return fallback;
     }
 };
 

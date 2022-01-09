@@ -91,7 +91,7 @@
     $: readableCandidates = JSON.stringify(rawCandidates);
 
     let injectedCandidates = '';
-    $: parsedInjectedCandidates = safeParse(injectedCandidates);
+    $: parsedInjectedCandidates = safeParse<Array<RTCIceCandidateInit>>(injectedCandidates, []);
 
     const sdpSemantics = new URL(document.location.toString()).searchParams.get('sdpSemantics') ?? 'unified-plan';
 
@@ -225,7 +225,7 @@
         EVENT_BUS.dispatchEvent(new CustomEvent(`AnswerTo:${recipient}`, { detail: answer }));
     }
 
-    function sendCandidate(candidate) {
+    function sendCandidate(candidate: RTCIceCandidate) {
         if (name && candidate) {
             sendCandidateFrom({ from: name, candidate });
             $config.isRemote && signalingClient.sendCandidate(candidate);
@@ -233,7 +233,7 @@
         }
     }
 
-    async function applyLocal(localOfferSdp) {
+    async function applyLocal(localOfferSdp: RTCSessionDescriptionInit) {
         addEvent('l', 'setLocalDescription');
         console.debug('localDescription ->', localOfferSdp);
         const sessionDesc = localOfferSdp;
@@ -243,7 +243,7 @@
         clearCandidatesFrom({ from: recipient });
     }
 
-    function applyRemoteOffer(receivedOffer) {
+    function applyRemoteOffer(receivedOffer: string) {
         addEvent('r', 'setRemoteDescription');
         const sessionDesc = packOffer(receivedOffer);
         peerConnection.setRemoteDescription(sessionDesc);
@@ -277,7 +277,7 @@
         await peerConnection.addIceCandidate(candidate);
     }
 
-    function applyRemoteAnswer(receivedOffer) {
+    function applyRemoteAnswer(receivedOffer: string) {
         addEvent('r', 'setRemoteDescription');
         const sessionDesc = packAnswer(receivedOffer);
         peerConnection.setRemoteDescription(sessionDesc);
@@ -410,7 +410,7 @@
     </article>
 
     <article class="box">
-        <details open="true">
+        <details open={true}>
             <summary> <h4>signaling</h4> </summary>
 
             <div class="box">

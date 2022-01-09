@@ -3,7 +3,7 @@
 
     import { eventLog } from './store';
 
-    let table;
+    let table: HTMLDivElement;
     let filterTerm = '';
 
     $: shownLog =

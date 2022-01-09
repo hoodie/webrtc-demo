@@ -1,18 +1,13 @@
 <script lang="ts">
-    import Details from './Details.svelte';
     import { onMount, createEventDispatcher } from 'svelte';
-    import Track from './views/Track.svelte';
     import Stream from './views/Stream.svelte';
 
-    export let open;
+    export let open: boolean;
 
     const dispatch = createEventDispatcher();
 
-    let upstreamVideo;
-    let currentActiveStream;
-    $: mainTrack = currentActiveStream?.getTracks()[0];
-    $: upstreamName = currentActiveStream?.constructor.name;
-    $: upstreamTrack = currentActiveStream?.getTracks()[0];
+    let upstreamVideo: HTMLVideoElement;
+    let currentActiveStream: MediaStream;
 
     const isCanvasCaptureStream = (mediaStream?: MediaStream): boolean =>
         mediaStream?.constructor.name === 'CanvasCaptureMediaStream' ||
@@ -21,7 +16,7 @@
     let videoDevices = [];
     let videoStreams = [];
 
-    async function getWebcamFeed(deviceId) {
+    async function getWebcamFeed(deviceId?: string) {
         const constraint = {
             video: deviceId ? { deviceId } : true,
         };
@@ -44,31 +39,31 @@
     }
 
     async function getNoise() {
-        const stream = await makeNoise();
-        stream.name = 'noise feed';
+        const stream = makeNoise();
+        stream['name'] = 'noise feed';
         makeMainStream(stream);
         videoStreams = [...videoStreams, stream];
     }
 
-    async function getWebcam(deviceId) {
+    async function getWebcam(deviceId?: string) {
         const stream = await getWebcamFeed(deviceId);
-        stream.name = deviceId ? getDeviceLabel(deviceId) : 'default webcam';
+        stream['name'] = deviceId ? getDeviceLabel(deviceId) : 'default webcam';
         makeMainStream(stream);
         videoStreams = [...videoStreams, stream];
     }
 
-    function makeMainStream(stream) {
+    function makeMainStream(stream: MediaStream) {
         currentActiveStream = stream;
         upstreamVideo.srcObject = stream;
         dispatch('stream', stream);
     }
 
-    function stopStream(stream) {
+    function stopStream(stream: MediaStream) {
         stream.getTracks().forEach((track) => track.stop());
         dispatch('stop', stream);
     }
 
-    function deleteStream(stream) {
+    function deleteStream(stream: MediaStream) {
         stopStream(stream);
         videoStreams = [...videoStreams.filter((s) => s != stream)];
         if (currentActiveStream === stream) {
@@ -76,7 +71,7 @@
         }
     }
 
-    function getDeviceLabel(id) {
+    function getDeviceLabel(id: string) {
         const device = id && videoDevices.find(({ deviceId }) => deviceId === id);
         return device && device.label;
     }
@@ -101,7 +96,7 @@
         <h5>video</h5>
     </summary>
 
-    <video id="upstream" bind:this={upstreamVideo} autoplay="true">
+    <video id="upstream" bind:this={upstreamVideo} autoplay={true}>
         <track kind="captions" />
     </video>
 

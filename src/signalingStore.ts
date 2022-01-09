@@ -6,7 +6,7 @@ export const offerStore = writable({
 export const answerStore = writable({
     /*[from]: {type: 'answer', sdp: string}*/
 });
-export const candidatesStore: Writable<Record<string, any>> = writable({
+export const candidatesStore: Writable<Record<string, RTCIceCandidate[]>> = writable({
     /*[from]: [Candidate]*/
 });
 

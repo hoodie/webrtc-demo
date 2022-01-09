@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount, tick, createEventDispatcher } from 'svelte';
-    import Details from './Details.svelte';
     import { config } from './store';
     import RtpReceiver from './views/RtpReceiver.svelte';
     import RtpSender from './views/RtpSender.svelte';
@@ -35,8 +34,6 @@
         transceiverDetails = peerconnection && peerconnection.getTransceivers();
     }
 
-    const displayOptArray = (optArray: Array<unknown> | undefined) => new Array(optArray).flatMap((elem) => JSON.stringify(elem));
-
     onMount(async () => {
         const interval = setInterval(() => {
             if (transceivers) {
@@ -45,8 +42,7 @@
         }, 1000);
 
         await tick();
-        peerconnection.addEventListener('track', ({ track, transceiver, streams }) => {
-            const stream = streams[0] || new MediaStream([track]);
+        peerconnection.addEventListener('track', ({ track, transceiver }) => {
             trackMap.set(transceiver, track);
             updateDetails();
         });
@@ -75,7 +71,7 @@
                             <tr>
                                 <th>direction</th>
                                 <td>
-                                    <select on:change={({ target }) => (transceiver.direction = target.value)}>
+                                    <select on:change={({ target }) => (transceiver.direction = target['value'])}>
                                         {#each ['sendrecv', 'sendonly', 'recvonly', 'inactive'] as value}
                                             <option
                                                 {value}

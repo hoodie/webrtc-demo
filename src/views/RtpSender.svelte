@@ -17,7 +17,7 @@
         sender.replaceTrack(stream.getTracks()[0]);
     }
 
-    let parameters;
+    let parameters: RTCRtpSendParameters;
     onMount(() => {
         const interval = setInterval(() => {
             parameters = sender?.getParameters?.();

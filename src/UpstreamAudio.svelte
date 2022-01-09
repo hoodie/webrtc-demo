@@ -2,7 +2,7 @@
     import { onMount, createEventDispatcher } from 'svelte';
     import { renderFloatBars, renderVolume, renderWaveForm } from './visualizers';
 
-    export let open;
+    export let open: boolean;
 
     const dispatch = createEventDispatcher();
 
@@ -78,12 +78,12 @@
         dispatch('stream', stream);
     }
 
-    function stopStream(stream) {
+    function stopStream(stream: MediaStream) {
         stream.getTracks().forEach((track) => track.stop());
         dispatch('stop', stream);
     }
 
-    function deleteStream(stream) {
+    function deleteStream(stream: MediaStream) {
         stopStream(stream);
         audioStreams = [...audioStreams.filter((s) => s != stream)];
         if (currentActiveStream === stream) {

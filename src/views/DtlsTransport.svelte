@@ -14,8 +14,8 @@
         summary="iceTransport"
         open={false}
         data={() => ({
-            role: transport.iceTransport.role,
-            component: transport.iceTransport.component,
+            role: transport.iceTransport['role'],
+            component: transport.iceTransport['component'],
             state: transport.iceTransport.state,
             gatheringState: transport.iceTransport.gatheringState,
             // localCandidates: transport.iceTransport.getLocalCandidates(),

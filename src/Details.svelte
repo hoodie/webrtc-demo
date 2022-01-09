@@ -1,5 +1,5 @@
 <script lang="ts">
-    export let open;
+    export let open: boolean;
     export let summary = '???';
     export let data: any;
 
