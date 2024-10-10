@@ -9,7 +9,7 @@
     "mini-css-extract-plugin": "^2.4.6",
     "svelte": "^3.45.0",
     "svelte-check": "^2.2.11",
-    "svelte-loader": "3.1.2",
+    "svelte-loader": "3.2.4",
     "svelte-preprocess": "^4.10.1",
     "ts-loader": "^9.2.6",
     "tslib": "^2.3.1",
